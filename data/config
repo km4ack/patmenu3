@@ -1,8 +1,8 @@
 #Config file for Pat Menu
 #20200429 KM4ACK
-MYCALLSIGN=KM4ACK
+MYCALLSIGN=N0CALL
 MAP=usa
-RIGCONTROL=yes
+RIGCONTROL=no
 ARDOP="/usr/local/bin/ardopcf 8515 plughw:3,0 plughw:3,0"
 ARDOPGUI="/home/km4ack/ardop/./piARDOP_GUI"
 DIREWOLF="direwolf -p"
