@@ -1,0 +1,42 @@
+#!/bin/bash
+
+#22FEB2025 last edit
+
+MAIN=${MYPATH}/bin/config/config
+LOGO=${MYPATH}/pmlogo.png
+TEMPFILE=${MYPATH}/data/config.tmp
+FILES=$(ls ${MYPATH}/data | grep .config)
+
+echo ${FILES} | awk 'BEGIN { OFS = "\n" }{ print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10 }' > ${TEMPFILE}
+
+CONFIG=$(PARSER='OFS="\n" {print $1}'
+tail -50 $TEMPFILE | awk "$PARSER" | \
+yad --title="Config Delete" --width=1100 --height=500 --separator=" " --item-separator="|" \
+    --image $LOGO --window-icon=$LOGO --image-on-top \
+    --center --list --text="Config Delete" \
+    --column Config-Files \
+    --button=gtk-close \
+    --button="Delete Config":2)
+BUT=$?
+
+if [ ${BUT} = 0 ]; then
+  ${MAIN} &
+  rm ${TEMPFILE}
+  exit
+elif [ ${BUT} = 252 ]; then
+  rm ${TEMPFILE}
+  exit
+fi
+
+FILE=$(echo ${CONFIG} | awk -F "|" '{print $1}')
+rm $MYPATH/data/$FILE
+rm $TEMPFILE
+
+yad --title="Deleted" --width=400 --height=100 \
+    --image $LOGO --window-icon=$LOGO --image-on-top --text-align=center \
+    --center --form --text="$FILE has been deleted" \
+    --button=gtk-ok
+
+$MAIN & 
+exit
+

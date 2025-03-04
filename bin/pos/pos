@@ -1,0 +1,24 @@
+#!/bin/bash
+
+#Pat POS
+#20220720 KM4ACK
+#21FEB2025 last edit KM4ACK
+#script creates POS files from WL2K_NEARBY or WL2K_MOBILES
+
+LOGO=${MYPATH}/pmlogo.png
+MAIN=${MYPATH}/patmenu
+
+yad --form --width=420 --text-align=center --center --title="POS" --text-align=center \
+--image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+--text="<b>Pat POS</b> by KM4ACK" \
+--field="Create POS for YAAC":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/pos/convert_to_aprs"' \
+--field="Keyword Search and Email":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/pos/keyword-search"' \
+--button="Main Menu":1
+
+BUT=$?
+
+if [ $BUT = 1 ]; then
+  ${MAIN} & exit
+elif [ $BUT = 252 ]; then
+  exit
+fi

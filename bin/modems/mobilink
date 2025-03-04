@@ -1,0 +1,124 @@
+#!/bin/bash
+
+#script to connect mobilinkd TNC for ax25 
+#20200602
+#20250129 last edit KM4ACK
+
+#special thanks to Rich for loaning me a TNC3 to test with
+LOGO=$MYPATH/pmlogo.png
+KISS=$(pidof kissattach)
+DIRE=$(pidof direwolf)
+ARDOP=$(pidof piardopc)
+TMPFILE=/run/user/$UID/scan.txt
+EXISTING=`bluetoothctl devices Paired | grep Mobilinkd`
+
+#see if we already have a TNC paired
+if [ -z "${EXISTING}" ]; then
+  yad --title="Mobilinkd Error" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center --on-top \
+  --center --form --text="\r\r\r\rNo Mobilinkd devices paired with this pi. \
+  Turn on your Mobilinkd before attempting to pair." \
+  --button="Pair Now:1" \
+  --button="Exit:2"
+  BUT=$?
+
+	if [ "${BUT}" = '2' ] || [ "${BUT}" = '252' ]; then
+	  exit
+	elif [ "${BUT}" = '1' ]; then
+	  gnome-terminal -e ${MYPATH}/bin/modems/mobi-pair
+	  exit
+	fi
+
+fi
+
+
+#verify other services that might interfere aren't running
+if [ -n "${KISS}" ] || [ -n "${DIRE}" ] || [ -n "${ARDOP}" ]; then
+  yad --title="Stop Modems" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center --on-top \
+  --center --form --text="\r\r\r\rIt appears that other modems are running. Please \
+  stop all modems and try again." \
+  --button=gtk-ok
+  exit 1
+fi
+
+#give user some feedback
+yad --center --timeout=10 --timeout-indicator=top --no-buttons --height=300 --width=300 \
+--title="Scanning" --image ${LOGO} --window-icon=${LOGO} --image-on-top \
+--text="Scanning for device. This takes about 20 seconds to complete. \
+Another notice will appear once a connection to the device is established." &
+
+#scan for bluetooth device and write to file
+hcitool scan > ${TMPFILE}
+
+#Decide if its a TNC 2, 3, or 4
+TNC2=$(grep -i TNC2 ${TMPFILE})
+TNC3=$(grep -i TNC3 ${TMPFILE})
+TNC4=$(grep -i TNC4 ${TMPFILE})
+if [ -n "${TNC2}" ]; then 
+  MAC=$(grep -i mobi ${TMPFILE} | awk '{ print $1 }')
+  TNC=2
+elif [ -n "${TNC3}" ]; then
+  MAC=$(grep -i mobi ${TMPFILE} | awk '{ print $1 }')
+  TNC=3
+elif [ -n "${TNC4}" ]; then
+  MAC=$(grep -i mobi ${TMPFILE} | awk '{ print $1 }')
+  TNC=4
+fi
+
+#set correct connection commmand
+if [ ${TNC} = "2" ]; then
+  CONNECT="sudo -A rfcomm bind /dev/rfcomm0 ${MAC}"
+elif [ ${TNC} = "3" ]; then
+  CONNECT="sudo -A rfcomm bind /dev/rfcomm0 ${MAC} 6"
+elif [ ${TNC} = "4" ]; then
+  CONNECT="sudo -A rfcomm bind /dev/rfcomm0 ${MAC}"
+fi
+
+#See if device was found and connect if found
+if [ -z "${MAC}" ]; then
+  yad --title="Mobilinkd MODEM" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center --on-top \
+  --center --form --text="\r\r\r\rMobilinkd NOT FOUND" \
+  --button=gtk-ok
+  rm ${TMPFILE}
+  exit 1
+else
+  #stop things that might conflict
+  sudo -A killall kissattach direwolf >> /dev/null 2>&1
+  yad --center --timeout=6 --timeout-indicator=top --no-buttons --height=300 --width=300 \
+  --title="Detected" --image ${LOGO} --window-icon=${LOGO} --image-on-top \
+  --text="Mobilinkd TNC ${TNC} detected. Just a few more seconds." &
+  rm ${TMPFILE}
+  #create bluetooth->serial connection
+  ${CONNECT} &
+  sleep 5
+
+  #create kissattach needed for winlink connections
+  sudo -A kissattach /dev/rfcomm0 wl2k &
+  sleep 3 
+  sudo -A kissparms -c 1 -p wl2k
+fi
+
+#verify that kissattach is running
+PIDPIC=$(pidof kissattach)
+if [ -z "${PIDPIC}" ]; then
+  yad --title="FAILED" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+  --center --form --text="The Mobilinkd Modem FAILED to Start" \
+  --button=gtk-ok
+else
+  yad --title="Mobilinkd MODEM" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center --on-top \
+  --center --form --text="\r\r\r\rThe Mobilinkd Modem has Started" \
+  --button=gtk-ok &
+fi
+
+#restart pat so terminal window correctly reflects rig control
+sudo -A systemctl restart pat@$USER
+
+source ${MYPATH}/data/config
+
+#open pat inbox in browser
+export DISPLAY=:0 && xdg-open http://127.0.0.1:${PORT} > /dev/null 2>&1 &
+

@@ -1,0 +1,135 @@
+#!/bin/bash
+
+#22FEB2025 last edit KM4ACK
+
+MAIN=${MYPATH}/bin/catelog/catelog
+LOGO=${MYPATH}/pmlogo.png
+
+WEATHER=$(yad --form --width=420 --text-align=center --center --title="Pat Catalog" --text-align=center \
+--image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+--text="<b>Pat Catalog</b> by KM4ACK" \
+--field="Weather Report":CB "GPS Weather|GRIB Files")
+BUT=$?
+if [ $BUT = 252 ]; then
+	exit
+fi
+
+WEATHER=$(echo $WEATHER | awk -F "|" '{print $1}')
+
+if [ -z "$WEATHER" ]; then
+  $MAIN & exit
+fi
+
+if [ "$WEATHER" = 'GPS Weather' ]; then
+	TMPFILE=/run/user/$UID/gps-data.txt
+	gpxlogger -e sockets > $TMPFILE &
+	CGPSPID=$(echo $!)
+	sleep 2
+	kill $CGPSPID
+	DATA=$(grep lat= $TMPFILE | head -1)
+	LAT=$(echo $DATA | awk '{print $2}' | sed 's/"//g;s/lat=//')
+	LONG=$(echo $DATA | awk '{print $3}' | sed 's/"//g;s/lon=//;s/>//')
+  if [ -z ${LAT} ]; then
+  yad --title="NO GPS" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center --on-top \
+  --center --form --text="\r\r\r\rGPS data could not be read. Check your GPS and try again." \
+  --button=gtk-ok
+  ${MAIN} & exit
+  fi
+	TO="query@saildocs.com"
+	SUBJECT="Weather Request"
+	BODY="https://forecast.weather.gov/MapClick.php?lat="$LAT"&lon="$LONG"&unit=0&lg=english&FcstType=text&TextType=1"
+	echo ${BODY} | pat compose ${TO} -s ${SUBJECT}
+  yad --title="Posted" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center --on-top \
+  --center --form --text="\r\r\r\rThe request has been posted to the Pat outbox" \
+  --button=gtk-ok
+  ${MAIN} & exit
+elif [ "$WEATHER" = 'GRIB Files' ]; then
+	echo "Need GRIB Files"
+	FILE=/run/user/$UID
+	QUESTION () {
+		DEGREE=$(yad --center --wrap --width=350 --title="Auto Download" --text-align=center \
+		--text="How many degrees would you like" \
+		--form --separator="|" --item-separator="|" \
+		--image $LOGO --window-icon=$LOGO --image-on-top \
+		--field="Degrees":CB "2|6|10" \
+		--button="Cancel:1" \
+		--button="Continue:2")
+		BUT=$?
+		if [ $BUT = 1 ] || [ -z "$BUT" ]; then
+			$MAIN &
+			exit
+		elif [ $BUT = 252 ]; then
+			exit 
+		fi
+
+		ANS=$(echo $DEGREE | awk -F "|" '{print $1}')
+		echo $ANS
+
+		if [ $ANS = "10" ]; then
+			AREA=5
+			echo "aree=5"
+		elif [ $ANS = "6" ]; then
+			AREA=3
+		elif [ $ANS = "2" ]; then
+			AREA=1
+		fi
+
+		GPS=$(gpspipe -r -n 10 | grep G\.GGA)
+
+		LAT=$(echo $GPS | awk -F "," '{printf "%.0f \n", $3 }' | cut -c1-2)
+		LATD=$(echo $GPS | awk -F "," '{print $4}')
+		LON=$(echo $GPS | awk -F "," '{printf "%.0f \n", $5 }' | cut -c1-2)
+		LOND=$(echo $GPS | awk -F "," '{print $6}')
+
+		#do some math
+		let NEWLATADD=$LAT+$AREA
+		let NEWLONADD=$LON+$AREA
+		let NEWLATSUB=$LAT-$AREA
+		let NEWLONSUB=$LON-$AREA
+
+		GRIBFILE=$FILE/gribtemp
+		GRIBDATA () {
+			yad --height=600 --width=400 --center --list --checklist --column=Request --column=Product --separator="," \
+			--text "Select the data to request." --title="GRIB DATA REQUEST" \
+			--button="Exit:1" --button="Request Selected:2" < $MYPATH/data/griblist > $GRIBFILE
+
+			BUTTON=$?
+
+			if [ $BUTTON = "252" ]; then
+				exit
+			elif [ $BUTTON = "1" ]; then
+				$MAIN &
+				exit 
+			fi
+
+			#echo "button = "$BUTTON
+
+		};export -f GRIBDATA
+
+			GRIBDATA
+
+			sed -i 's/TRUE,//' $GRIBFILE
+
+			var=$(cat $GRIBFILE)
+			var1=$(echo $var | sed 's/ //g' | sed 's/,*$//')
+			rm $GRIBFILE
+
+			#example of correct format
+			# send gfs:40N,60N,140W,120W|2,2|24,48,72|PRESS,WIND
+
+			TO=query@saildocs.com
+			SUBJECT=REQUEST
+			BODY=$(echo "send gfs:"$NEWLATSUB$LATD","$NEWLATADD$LATD","$NEWLONADD$LOND","$NEWLONSUB$LOND"|2,2|24,48,72|"$var1)
+			echo ${BODY} | pat compose ${TO} -s ${SUBJECT}
+        yad --title="Posted" --width=400 --height=100 \
+        --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center --on-top \
+        --center --form --text="\r\r\r\rThe request has been posted to the Pat outbox" \
+        --button=gtk-ok
+      ${MAIN} & exit
+	}
+	QUESTION
+	exit
+fi
+

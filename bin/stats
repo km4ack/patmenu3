@@ -1,0 +1,65 @@
+#!/bin/bash
+
+#22FEB2025 last edit KM4ACK
+
+MAIN=${MYPATH}/patmenu
+LOGO=${MYPATH}/pmlogo.png
+CONFIG=${HOME}/.config/pat/config.json
+SMD=/usr/lib/systemd/system/pat@.service
+CALL=$(grep mycall ${CONFIG} | head -1 | sed s'/"mycall": //;s/"//g;s/,//;s/ //g')
+GRID=$(grep locator ${CONFIG} | sed 's/"//g;s/locator://;s/,//;s/ //g')
+ARDOPMAX=$(grep -i max ${CONFIG} | sed 's/"Max":\ //;s/ //g')
+PTT=$(grep ptt_ctrl ${CONFIG} | tail -1 | sed 's/"ptt_ctrl":\ //;s/,//;s/ //g')
+PORT=$(grep http_addr ${CONFIG} | awk '{print $2}' | sed 's/.*://;s/",//')
+RIG=$(grep RIGCONTROL ${MYPATH}/data/config | sed 's/RIGCONTROL=//')
+TELNET=$(grep telnet, ${SMD})
+ARDOP=$(grep ardop, ${SMD})
+AX25=$(grep ax25, ${SMD})
+PAT=$(pidof pat)
+CARD=$(arecord -l | grep USB | awk '{print $2;}' | sed 's/://')
+
+#Check if sound card found
+if [ -z ${CARD} ]; then
+CARD="Not found"
+else
+CARD="${CARD},0"
+fi
+#Set telnet variable
+	if [ -n "${TELNET}" ]; then
+	TELNET="telnet,"
+	fi
+#set ardop variable
+	if [ -n "${ARDOP}" ]; then
+	ARDOP="ardop,"
+	fi
+#set ax25 variable
+	if [ -n "${AX25}" ]; then
+	AX25="ax25,"
+	fi
+if [ -z "${TELNET}" ] && [ -z "${ARDOP}" ] && [ -z "${AX25}" ]; then
+LISTEN="Not Listening"
+else
+LISTEN="${TELNET}${ARDOP}${AX25}"
+fi
+
+#set Pat Variable
+if [ -z ${PAT} ]; then
+PAT="Not Running"
+else
+PAT="Running"
+fi
+
+yad --form --width=320 --text-align=center --center --title="Quick Stats" --text-align=center \
+--image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+--text="<b>Quick Stats</b>" \
+--field="Current User":RO "$CALL" \
+--field="Current Grid":RO "$GRID" \
+--field="ARDOP Speed":RO "$ARDOPMAX" \
+--field="ARDOP PTT is":RO "$PTT" \
+--field="Listen Modes":RO "$LISTEN" \
+--field="Rig Control":RO "$RIG" \
+--field="Pat Port":RO "$PORT" \
+--field="Pat Server":RO "$PAT" \
+--field="Sound Card":RO "$CARD" \
+--button=gtk-ok
+${MAIN} & exit

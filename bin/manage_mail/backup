@@ -1,0 +1,41 @@
+#!/bin/bash
+
+#last edit 25FEB2025 KM4ACK
+
+MAIN=${MYPATH}/bin/manage_mail/./manage_mail
+LOGO=${MYPATH}/pmlogo.png
+VERSION=$(cat ${MYPATH}/changelog | grep release | head -1 | sed 's/release=//')
+eval `pat env`
+
+IN=$HOME/.local/share/pat/mailbox/${PAT_MYCALL}/in
+ARCHIVE=$HOME/.local/share/pat/mailbox/${PAT_MYCALL}/archive
+SENT=$HOME/.local/share/pat/mailbox/${PAT_MYCALL}/sent
+
+
+CONFIG=$HOME/.config/pat/config.json
+BKUPTIME=$(date +%Y%d%m-%H%M)
+
+BACKUP=$(yad --form --width=420 --text-align=center --center --title="Email Backup" --text-align=center \
+--image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+--text="<b>Email Backup</b> by KM4ACK" \
+--field="Backup Directory":DIR \
+--button="Backup Emails":2 \
+--button="Cancel":1)
+BUT=$?
+
+if [ $BUT = 252 ]; then
+  exit
+elif [ $BUT = 1 ]; then
+  ${MAIN}
+  exit
+fi
+
+DIR=$(echo $BACKUP | awk -F "|" '{print $1}')
+
+cp -r $HOME/.local/share/pat/mailbox/${PAT_MYCALL} $DIR/email.bkup.$BKUPTIME
+
+if [ -d $DIR/email.bkup.$BKUPTIME ]; then
+  yad --center --text="Backup Complete" \
+  --button=gtk-ok
+  ${MAIN} & exit
+fi

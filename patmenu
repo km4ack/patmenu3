@@ -1,0 +1,86 @@
+#!/bin/bash
+
+#Pat Menu
+#side note: dev version written during covid-19 outbreak of 2020
+#20FEB2025 last edit KM4ACK
+
+
+export MYPATH="$(cd "$(dirname "$0")" && pwd)"
+LOGO=${MYPATH}/pmlogo.png
+MAIN=${MYPATH}/patmenu
+VERSION=$(cat ${MYPATH}/changelog | grep release | head -1 | sed 's/release=//')
+
+source ${MYPATH}/data/config
+
+#verify call is set
+if [ "${MYCALLSIGN}" = "N0CALL" ]; then
+  yad --title="N0CALL" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+  --center --form --text="\r\r\r\rCall sign not set! \rGo to <b>Config</b>, then <b>Current Config Settings</b>\rand update your call sign" \
+  --button=gtk-ok
+fi
+
+#get name of current config file
+source ${MYPATH}/data/.currentconf
+CONFIG=$(echo ${CONF} | sed 's/.config//')
+if [ -z ${CONFIG} ]; then
+  CONFIG=default
+fi
+
+########################
+#get sudo pw
+########################
+if [ ! -f /run/user/${UID}/.patmenu ]; then
+  PW=$(yad --title="sudo password" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+  --center --form --text="Please enter your sudo password" \
+  --field="Password":H \
+  --button=gtk-ok)
+  PASS=$(echo $PW | awk -F "|" '{print $1}')
+  echo ${PASS} | base64 > /run/user/${UID}/.patmenu
+  echo '#!/bin/bash' > /run/user/${UID}/.pmpw
+  echo 'PASS=$(base64 -d /run/user/${UID}/.patmenu)' >> /run/user/${UID}/.pmpw
+  echo 'echo ${PASS}' >> /run/user/${UID}/.pmpw
+  chmod +x /run/user/${UID}/.pmpw
+  export SUDO_ASKPASS=/run/user/${UID}/.pmpw
+  #reset sudo timer to prevent false positive
+  sudo -k
+  echo "Checking SUDO credentials....standby"
+  sudo -A touch /run/user/${UID}/sutest 2>&1 </dev/null
+
+    if [ $? = 1 ]; then
+      echo "Wrong sudo password entered. Can't continue! Exiting"
+      yad --title="Wrong Password" --width=400 --height=100 \
+      --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+      --center --form --text="Wrong Password. Can't continue'" \
+      --button="Exit"
+      rm /run/user/${UID}/.patmenu /run/user/${UID}/.pmpw
+      exit
+    else 
+      echo "Credentials check out....continuing"
+    fi
+
+else
+  export SUDO_ASKPASS=/run/user/${UID}/.pmpw
+fi
+############################
+
+yad --form --width=320 --text-align=center --center --title="Pat Menu" --text-align=center \
+--image ${LOGO} --window-icon=${LOGO} --image-on-top --separator="|" --item-separator="|" \
+--text="<b>Pat Menu</b> by KM4ACK\rv$VERSION" \
+--field="Contacts":fbtn 'bash -c "kill -USR1 ${YAD_PID}; ${MYPATH}/bin/pat-contacts"' \
+--field="Modems":fbtn 'bash -c "kill -USR1 ${YAD_PID}; ${MYPATH}/bin/modems/modems"' \
+--field="Find Gateways":fbtn 'bash -c "kill -USR1 ${YAD_PID}; ${MYPATH}/bin/find-gateways/find2"' \
+--field="Catalog":fbtn 'bash -c "kill -USR1 ${YAD_PID}; ${MYPATH}/bin/catelog/catelog"' \
+--field="Manage Mail":fbtn 'bash -c "kill -USR1 ${YAD_PID}; ${MYPATH}/bin/manage_mail/manage_mail"' \
+--field="Admin":fbtn 'bash -c "kill -USR1 ${YAD_PID}; ${MYPATH}/bin/pat_admin/pat_admin"' \
+--field="Config":fbtn 'bash -c "kill -USR1 ${YAD_PID}; ${MYPATH}/bin/config/config"' \
+--field="Quick Stats":fbtn 'bash -c "kill -USR1 ${YAD_PID}; ${MYPATH}/bin/stats"' \
+--field="My Call - ${MYCALLSIGN}":LBL \
+--field="Config=${CONFIG}":LBL \
+--button="QUIT":1
+
+BUT=$?
+if [ $BUT = 1 ]; then
+  exit
+fi

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+#last edit 21FEB2025 KM4ACK
+
+CONFIG=${HOME}/.config/pat/config.json
+DATE=$(date +%d%b%Y-%H%M)
+LOGO=${MYPATH}/pmlogo.png
+MAIN=${MYPATH}/bin/pat_admin/pat_admin
+
+yad --form --width=420 --text-align=center --center --title="Backup Config" --text-align=center \
+--image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+--text="<b>Backup Pat Config</b> by KM4ACK" \
+--button="Backup Config":2 \
+--button="Main Menu":1
+BUT=$?
+if [ $BUT = 1 ]; then
+  $MAIN & exit
+elif [ $BUT = 252 ]; then
+  exit
+elif [ $BUT = 2 ]; then
+  BKUPCONFIG=config.$DATE.bkup
+  cp ${CONFIG} ${HOME}/.config/pat/$BKUPCONFIG
+  yad --form --width=420 --text-align=center --center --title="Config Backup" --text-align=center \
+  --image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+  --text="<b>Config File Backup</b> by KM4ACK\r\r<b>Backup COMPLETE</b>" \
+  --button=gtk-ok
+fi
+${MAIN}

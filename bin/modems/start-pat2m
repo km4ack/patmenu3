@@ -1,0 +1,121 @@
+#!/bin/bash
+
+#script to start Pat for 2m packet work
+#20191116 km4ack
+#27FEB2025 last edit KM4ACK
+
+clear
+
+TEMP=${MYPATH}/data/temp
+LOGO=${MYPATH}/pmlogo.png
+source ${MYPATH}/data/config
+RIG=$(cat ${MYPATH}/data/config | grep RIG= | sed 's/RIG=//;s/"//g;s/rigctld/rigctl/')
+
+#Check if FLRIG is running if user has it set in config file
+if [ "${RIGCONTROL}" = 'yes' ]; then
+  FLRIG=$(echo ${RIG} | grep "\-m 4")
+  if [ -z "${FLRIG}" ]; then
+    echo
+  else
+    FLRIG=$(pidof flrig)
+    if [ -z "${FLRIG}" ]; then
+      yad --title="FAILED" --width=400 --height=100 \
+      --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+      --center --form --text="Please start FLRIG and try again" \
+      --button=gtk-ok
+      exit
+    fi
+  fi
+fi
+
+#Check if modem is already running
+MODEMCHECK=$(pidof direwolf)
+if [ -z "${MODEMCHECK}" ]; then
+  echo
+else
+  yad --title="FAILED" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+  --center --form --text="Packet Modem is already running" \
+  --button=gtk-ok
+  exit
+fi
+
+yad --width=350 --height=75 --title="Start Modem" --timeout=3 --timeout-indicator=top --no-buttons --center \
+--image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center --text="Modem Starting....standby" &
+
+if [ ${AMRRON} = "no" ] > /dev/null 2>&1; then
+  sudo -A killall direwolf kissattach > /dev/null 2>&1
+fi
+sleep 1
+
+#Set Mode
+RIGFM=${RIG}" M ${MODE2M}"
+
+#set the long date
+TODAY=$(date)
+
+#set path to my log
+MYLOG=${HOME}/Documents/mylog.txt
+
+SETRIG () {
+  #set radio frequency & mode
+  ${RIGFM}
+  sleep 1
+  #check rig is in correct mode
+  MODE=$(${RIG} m | grep $MODE2M)
+  sleep 1
+  MODECHECK() {
+    #check rig is in correct mode
+    MODE=$(${RIG} m | grep ${MODE2M})
+  }
+  sleep 1
+  if [ -z ${MODE} ]; then
+    ${RIGFM}
+    MODECHECK
+  fi
+}
+
+
+#see if rig control is used
+if [ ${RIGCONTROL} == 'yes' ]; then 
+  PIDCTL=$(pidof rigctld)
+	if [ -z "$PIDCTL" ]; then	
+	  CONTROL=$(cat ${MYPATH}/data/config | grep '^RIG="' | sed 's/RIG="//' | sed 's/"//')
+	  ${CONTROL} &
+	  echo $PASS | sudo -S systemctl restart pat@$USER
+	fi
+  SETRIG
+fi
+
+#added to resolve issue 24. km4ack 20200307
+/usr/local/bin/${DIREWOLF} </dev/null &>/dev/null &
+echo "Almost Done"
+sleep 5 | yad --width=350 --height=75 --auto-close --title="Direwolf" --progress --pulsate --no-buttons --center \
+--image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center --text="Starting Direwolf....standby"
+#find what pt direwolf created (/dev/pts/X)
+LINK=$(ls -l /tmp/kisstnc | awk '{print $NF}')
+#end issue 24 edit. km4ack 20200307
+
+sudo -A /usr/sbin/kissattach ${LINK} ${AXP}
+sudo -A kissparms -c 1 -p wl2k
+
+#verify direwolf has started
+PIDDW=$(pidof direwolf)
+if [ -z "${PIDDW}" ]; then
+  yad --title="FAILED" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+  --center --form --text="The PACKET Modem FAILED to Start" \
+  --button=gtk-ok
+else
+  yad --title="PACKET MODEM" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center --on-top \
+  --center --form --text="\r\r\r\rThe PACKET Modem has Started" \
+  --button=gtk-ok &
+fi
+
+#restart pat so terminal window correctly reflects rig control
+sudo -A systemctl restart pat@$USER
+
+#open pat inbox in browser
+export DISPLAY=:0 && xdg-open http://127.0.0.1:${PORT} > /dev/null 2>&1 &
+

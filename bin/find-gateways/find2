@@ -1,0 +1,34 @@
+#!/bin/bash
+
+#FIND-ARDOP
+#20200425 KM4ACK
+#side note: written during covid-19 outbreak of 2020
+#22FEB2025 last edit
+
+PATMENU=${MYPATH}/patmenu
+LOGO=${MYPATH}/pmlogo.png
+CURRENT=$(crontab -l | grep getardoplist | awk '{print $2":"$1}')
+GRID=$(grep GRID ${MYPATH}/data/ardop-list/grid.txt | sed 's/GRID=//')
+LASTDOWNLOAD=$(grep LASTDL ${MYPATH}/data/ardop-list/grid.txt | tail -1 | sed 's/LASTDL=//')
+VERSION=$(cat ${MYPATH}/changelog | grep release | head -1 | sed 's/release=//')
+
+yad --form --width=480 --text="<b>Find Gateways</b> by KM4ACK" --text-align=center --center --title="Find Gateways" --text-align=center \
+--image $LOGO --window-icon=$LOGO --image-on-top \
+--text="<b>Find Gateways</b> by KM4ACK\rv${VERSION}" \
+--field="Search for Gateway":fbtn 'bash -c "kill -USR1 $YAD_PID; $MYPATH/bin/find-gateways/gridsearch"' \
+--field="View Grid Map":fbtn 'bash -c "$MYPATH/bin/find-gateways/map"' \
+--field="Download Gateway List":fbtn 'bash -c "kill -USR1 $YAD_PID; $MYPATH/bin/find-gateways/manual"' \
+--field="Auto Download Gateway List <b>$CURRENT</b>":fbtn 'bash -c "kill -USR1 $YAD_PID; $MYPATH/bin/find-gateways/auto"' \
+--field="Recalculate Distance and Bearings":fbtn 'bash -c "kill -USR1 $YAD_PID; $MYPATH/bin/find-gateways/recalc"' \
+--field="$LASTDOWNLOAD":LBL \
+--field="Current calculations based on grid <b>$GRID</b>":LBL \
+--button="Main Menu":1
+
+QUIT=$?
+
+if [ ${QUIT} = 1 ]; then
+  ${PATMENU} & exit
+elif [ ${QUIT} = 252 ]; then
+  exit
+fi
+

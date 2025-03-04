@@ -1,0 +1,62 @@
+#!/bin/bash
+
+#last edit 22FEB2025 KM4ACK
+
+CONFIG=${HOME}/.config/pat/config.json
+DATE=$(date +%d%b%Y-%H%M)
+LOGO=${MYPATH}/pmlogo.png
+MAIN=${MYPATH}/bin/pat_admin/pat_admin
+CONFIG=$HOME/.config/pat/config.json
+
+if ! hash ruby3.2 2>/dev/null; then
+  echo "Ruby Not found on system"
+  yad --form --width=300 --text-align=center --center --title="Ruby not Found" --text-align=center \
+  --image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+  --text="Ruby is needed to read GPS data but not found installed on your system. Would you like to install it now?" \
+  --button="Install Ruby":2 \
+  --button="Cancel":1
+  BUT=$?
+	if [ ${BUT} = 1 ]; then
+	${MAIN} & exit
+	elif [ ${BUT} = 2 ]; then
+	   INSTALLRUBY(){
+	    sudo -A apt-get update
+	    sudo -A apt-get install -y ruby3.2
+	    sudo -A gem install gpsd_client
+	    sudo -A gem install maidenhead
+	  }
+	  INSTALLRUBY | yad --center --progress --pulsate --auto-close --no-buttons --text-align=center \
+    --text="Installing Ruby. This will take several minutes\r<b>DO NOT CLOSE THIS WINDOW</b>\rDoing so will abort the install."
+	fi
+fi
+
+yad --center --timeout=5 --timeout-indicator=top \
+--auto-close --no-buttons --text="Getting grid from GPS" &
+
+NEWGRID=$(${MYPATH}/bin/getgrid | cut -b 1-6)
+
+if [ "${NEWGRID}" = 'JJ00aa' ]; then
+  NEWGRID="GPS READ ERROR or NO LOCK"
+  yad --form --width=400 --text-align=center --center --title="GPS ERROR" --text-align=center \
+  --image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+  --text="<b>Update Pat Grid</b> by KM4ACK\r\rGPS ERROR" \
+  --field="Grid read from GPS":RO "$NEWGRID" \
+  --button=gtk-quit
+  ${MAIN} & exit
+fi
+
+yad --form --width=200 --text-align=center --center --title="Update Grid" --text-align=center \
+--image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+--text="<b>Update Pat Grid</b> by KM4ACK" \
+--field="Grid read from GPS":RO "$NEWGRID" \
+--button="Update Pat":2 \
+--button="Cancel":1
+BUT=$?
+if [ ${BUT} = 1 ]; then
+  ${MAIN} & exit
+elif [ ${BUT} = 2 ]; then
+  sed -i "s/\"locator\": \".*\",/\"locator\": \"$NEWGRID\",/" $CONFIG
+  yad --center --timeout=2 --timeout-indicator=top \
+  --auto-close --no-buttons --text="Grid Square Updated"
+  ${MAIN} & exit
+fi

@@ -1,0 +1,31 @@
+#!/bin/bash
+
+#last edit 25FEB2025 KM4ACK
+
+MAIN=${MYPATH}/bin/manage_mail/./manage_mail
+LOGO=$MYPATH/pmlogo.png
+VERSION=$(cat ${MYPATH}/changelog | grep release | head -1 | sed 's/release=//')
+eval `pat env`
+
+IN=$HOME/.local/share/pat/mailbox/${PAT_MYCALL}/in
+ARCHIVE=$HOME/.local/share/pat/mailbox/${PAT_MYCALL}/archive
+SENT=$HOME/.local/share/pat/mailbox/${PAT_MYCALL}/sent
+
+yad --form --width=420 --text-align=center --center --title="Pat Menu" --text-align=center \
+--image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+--text="<b>Pat Menu</b> by KM4ACK\rv$VERSION\r<b>ARE YOU SURE YOU WANT TO DELETE\rALL ITEMS FROM YOUR ARCHIVE FOLDER?\rTHIS CAN'T BE UNDONE</b>" \
+--button="Yes I'm Sure":2 \
+--button="No":1
+BUT=$?
+if [ $BUT = 1 ]; then
+${MAIN} & exit
+elif [ $BUT = 252 ]; then
+  exit
+elif [ $BUT = 2 ]; then
+  rm ${ARCHIVE}/*
+  yad --form --width=420 --height=100 --text-align=center --center --title="Pat Menu" --text-align=center \
+  --image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+  --text="<b>Pat Menu</b> by KM4ACK\rv$VERSION\rArchives Deleted" \
+  --button=gtk-ok
+  ${MAIN} &
+fi

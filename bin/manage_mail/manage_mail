@@ -1,0 +1,26 @@
+#!/bin/bash
+
+#22FEB2025 KM4ACK
+
+LOGO=${MYPATH}/pmlogo.png
+MAIN=${MYPATH}/patmenu
+VERSION=$(cat $MYPATH/changelog | grep release | head -1 | sed 's/release=//')
+eval `pat env`
+CALL=${PAT_MYCALL}
+
+yad --form --width=420 --text-align=center --center --title="Pat Menu" --text-align=center \
+--image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+--text="<b>Pat Menu</b> by KM4ACK\rv$VERSION" \
+--field="Archive All Email":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYAPTH}/bin/manage_mail/archive_all"' \
+--field="Delete Archived Email":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/manage_mail/delete_archive"' \
+--field="Delete Sent Email":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/manage_mail/delete_sent"' \
+--field="Backup Email":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/manage_mail/backup"' \
+--field="Restore Email":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/manage_mail/restore"' \
+--button="Main Menu":1
+BUT=$?
+
+if [ ${BUT} = 1 ]; then
+  ${MAIN} & exit
+elif [ ${BUT} = 252 ]; then
+  exit 0
+fi

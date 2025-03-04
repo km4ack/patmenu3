@@ -1,0 +1,116 @@
+#!/bin/bash
+
+#start ardop modem
+
+#20191118 km4ack
+#20250129 last edit km4ack
+
+source ${MYPATH}/data/config
+LOGO=${MYPATH}/pmlogo.png
+
+#Check if FLRIG is running if user has it set in config file
+if [ "${RIG}CONTROL" = 'yes' ]; then
+  echo "rig control is on"
+  FLRIG=$(echo ${RIG} | grep "\-m 4")
+	if [ -z "${FLRIG}" ]; then
+	  echo
+	else
+	  FLRIG=$(pidof flrig)
+		if [ -z "${FLRIG}" ]; then
+		  yad --title="FAILED" --width=400 --height=100 \
+    	--image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+   		--center --form --text="Please start FLRIG and try again" \
+    	--button=gtk-ok
+		  exit
+		fi
+	fi
+fi
+
+#Check if modem is already running
+MODEMCHECK=$(pidof ardopc64)
+if [ -z "${MODEMCHECK}" ]; then
+  echo
+else
+  yad --title="FAILED" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+  --center --form --text="ARDOP Modem is already running" \
+  --button=gtk-ok
+  exit
+fi
+
+
+if [ ${AMRRON} = "no" ] > /dev/null 2>&1; then
+  #check if direwolf is running
+  PIDDW=$(pidof direwolf)
+  if [ -z "${PIDDW}" ]; then
+    echo
+  else
+    yad --title="FAILED" --width=400 --height=100 \
+    --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+    --center --form --text="It looks like the 2M/440 modem is running.\rStop all modems and try again" \
+    --button=gtk-ok
+    exit
+  fi
+
+fi
+
+yad --width=350 --height=75 --title="Start Modem" --timeout=2 --timeout-indicator=top --no-buttons --center \
+--text="Modem Starting....standby" &
+
+
+SETRIG () {
+  #Set USB Mode
+  RIGUSB=${RIG}" M ${MODEHF} 0"
+  #check rig is in USB
+  MODE=$(${RIG} m | grep ${MODEHF})
+  sleep 1
+  MODECHECK() {
+    #check rig is in correct mode
+    MODE=$(${RIG} m | grep ${MODEHF})
+  }
+  sleep 1
+  if [ -z ${MODE} ]; then
+  ${RIG}USB
+  MODECHECK
+  fi
+}
+
+#see if rig control is used
+if [ ${RIG}CONTROL == 'yes' ]; then
+  PIDCTL=$(pidof rigctld)
+	  if [ -z "$PIDCTL" ]; then	
+	    CONTROL=$(cat ${MYPATH}/data/config | grep '^RIG="' | sed 's/RIG="//' | sed 's/"//')
+	    $CONTROL &
+	    sudo -A systemctl restart pat@$USER
+	  fi
+  SETRIG
+fi
+
+#Start ARDOP_GUI
+${ARDOPGUI} </dev/null &>/dev/null &			
+
+#start modem
+gnome-terminal --geometry=55x10 -- ${ARDOP} </dev/null &>/dev/null &
+sleep 2
+
+
+#verify that piardopc is running
+PIDPIC=$(pidof ardopcf)
+if [ -z "${PIDPIC}" ]; then
+  yad --title="FAILED" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+  --center --form --text="The ARDOP Modem FAILED to Start" \
+  --button=gtk-ok
+else
+  yad --title="ARDOP MODEM" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center --on-top \
+  --center --form --text="\r\r\r\rThe ARDOP Modem has Started" \
+  --button=gtk-ok &
+fi
+
+#restart pat so terminal window correctly reflects rig control
+sudo -A systemctl restart pat@$USER
+
+#open pat inbox in browser
+export DISPLAY=:0 && xdg-open http://127.0.0.1:${PORT} > /dev/null 2>&1 &
+

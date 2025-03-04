@@ -1,0 +1,18 @@
+#!/bin/bash
+
+MAIN=$MYPATH/bin/find-gateways/find2
+CONFIG=$HOME/.config/pat/config.json
+TEMP=$HOME/patmenu2/tempconfig.txt
+TODAY=$(date +%Y%m%d-%R)
+LASTDL=$(cat $MYPATH/ardop-list/ardoplist.txt | head -1)
+LOGO=$MYPATH/pmlogo.png
+
+source $MYPATH/config
+
+#--------------------------------
+#	MANUAL Download List
+#--------------------------------
+$MYPATH/bin/getardoplist
+$MAIN &
+exit
+

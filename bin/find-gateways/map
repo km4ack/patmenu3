@@ -1,0 +1,17 @@
+#!/bin/bash
+
+
+
+source ${MYPATH}/data/config
+#--------------------------------
+#	Open Map
+#--------------------------------
+
+if [ "$MAP" = "usa" ]; then
+MAP=${MYPATH}/data/grid-map.pdf
+elif [ "$MAP" = "world" ]; then
+MAP=${MYPATH}/data/worldgridmap.pdf
+fi
+xdg-open $MAP
+
+

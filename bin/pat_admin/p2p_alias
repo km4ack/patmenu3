@@ -1,0 +1,47 @@
+#!/bin/bash
+
+#last edit 22FEB2025 KM4ACK
+
+CONFIG=${HOME}/.config/pat/config.json
+DATE=$(date +%d%b%Y-%H%M)
+LOGO=${MYPATH}/pmlogo.png
+MAIN=${MYPATH}/bin/pat_admin/pat_admin
+
+TEMP_DIR=/run/user/$UID
+CONFIG=$HOME/.config/pat/config.json
+TEMP_CONFIG=$TEMP_DIR/temp-config.txt
+
+#get data from user
+PEER=$(yad --center --wrap --width=450 --title="Add P2P Alias" --text-align=center \
+--text="This is <b>ONLY</b> for connecting P2P over telnet!\rEnter the Peer to Peer Details Below\rIf using a hostname, add \".local\" to the end.\rExample: <b>raspberrypi.local</b>" \
+--image $LOGO --window-icon=$LOGO --image-on-top \
+--button="Update:2" \
+--button="Cancel:1" \
+--form --separator="|" --item-separator="|" \
+--field="Call Sign of Remote Station" \
+--field="IP address <b>OR</b> hostname of Remote Station" \ 
+)
+BUT=$?
+if [ $BUT = 1 ]; then
+  $MAIN & exit
+elif [ $BUT = 252 ]; then
+  exit
+elif [ $BUT = 2 ]; then
+  #parse info entered above
+  REMOTE_CALL=$(echo $PEER | awk -F "|" '{print $1}')
+  REMOTE_CALL=${REMOTE_CALL^^}
+  IP=$(echo $PEER | awk -F "|" '{print $2}')
+  #create shortcut
+  SC="telnet://{mycall}:CMSTelnet@$IP:8774/wl2k"
+  #mod config file
+  jq '.connect_aliases += {'\"P2P-"$REMOTE_CALL"-"$IP"\"' : '\"$SC\"'}' $CONFIG > $TEMP_CONFIG
+  cp $TEMP_CONFIG $CONFIG
+  sudo -A systemctl restart pat@$USER
+
+  #give user notice
+  yad --form --width=420 --text-align=center --center --title="P2P Alias Add" --text-align=center \
+  --image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+  --text="<b>P2P Alias Added</b>" \
+  --button=gtk-ok
+  $MAIN
+fi

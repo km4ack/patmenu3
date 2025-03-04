@@ -1,0 +1,46 @@
+#!/bin/bash
+
+#last edit 25FEB2025 KM4ACK
+
+MAIN=${MYPATH}/bin/manage_mail/./manage_mail
+LOGO=$MYPATH/pmlogo.png
+VERSION=$(cat ${MYPATH}/changelog | grep release | head -1 | sed 's/release=//')
+eval `pat env`
+
+IN=$HOME/.local/share/pat/mailbox/${PAT_MYCALL}/in
+ARCHIVE=$HOME/.local/share/pat/mailbox/${PAT_MYCALL}/archive
+SENT=$HOME/.local/share/pat/mailbox/${PAT_MYCALL}/sent
+
+RESTORE=$(yad --form --width=420 --text-align=center --center --title="Email Restore" --text-align=center \
+--image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+--text="<b>Email Restore</b> by KM4ACK" \
+--field="Restore Directory":DIR \
+--button="Restore Emails":2 \
+--button="Cancel":1)
+BUT=$?
+
+if [ $BUT = 252 ]; then
+  exit
+elif [ $BUT = 1 ]; then
+  ${MAIN} & exit
+fi
+
+DIR=$(echo $RESTORE | awk -F "|" '{print $1}')
+DIRCHECK=$(ls $DIR)
+COUNT=${#DIRCHECK}
+if [ "$COUNT" = 19 ]; then
+  cp $DIR/archive/* $HOME/.local/share/pat/mailbox/${PAT_MYCALL}/archive/
+  cp $DIR/in/* $HOME/.local/share/pat/mailbox/${PAT_MYCALL}/in/
+  cp $DIR/out/* $HOME/.local/share/pat/mailbox/${PAT_MYCALL}/out/
+  cp $DIR/sent/* $HOME/.local/share/pat/mailbox/${PAT_MYCALL}/sent/
+  yad --form --width=420 --text-align=center --center --title="Email Restore" --text-align=center \
+  --image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+  --text="<b>Email Restore</b> by KM4ACK\r\r<b>RESTORE COMPLETE</b>" \
+  --button=gtk-ok
+else
+  yad --form --width=420 --text-align=center --center --title="Email Restore" --text-align=center \
+  --image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+  --text="<b>Email Restore</b> by KM4ACK\r\r<b>Not a valid restore directory</b>" \
+  --button=gtk-ok
+fi
+${MAIN} & exit

@@ -1,0 +1,45 @@
+#!/bin/bash
+
+#script will update the catelog list using Winlink
+#21FEB2025 KM4ACK
+
+#Subject: INQUIRY: LIST
+call=$(pat env | grep PAT_MYCALL | awk -F "=" '{print $2}' | sed 's/"//g')
+dir=${HOME}/.local/share/pat/mailbox/${call}/in/
+MAIN=${MYPATH}/bin/catelog/catelog
+
+update_list(){
+  mid=$(grep Mid: ${file} | awk -F " " '{print $2}' | sed 's/\r$//')
+  mid="${mid}.b2f"
+  #echo ${mid}    
+  cp ${dir}${mid} ${MYPATH}/data/list.b2f
+  #get the date of the list from the email
+  for file in ${dir}*; do
+    ck=$(grep "Subject: INQUIRY: LIST" ${file})
+    if [ -z "${ck}" ]; then
+      continue
+    else
+      LAST_UPDATE=$(grep Date ${file} | awk '{print $2}')
+      echo ${LAST_UPDATE} > ${MYPATH}/data/catelog_update.date
+    fi
+  done
+  yad --no-buttons --timeout=2 --center --timeout-indicator=top --title="Updated" --text-align=center --width="300" height="300" \
+  --text="Catelog updated"
+  ${MAIN} & exit
+}
+
+for file in ${dir}*; do
+  ck=$(grep "Subject: INQUIRY: LIST" ${file})
+  if [ -z "${ck}" ]; then
+    continue
+  else
+    update_list
+  fi
+done
+
+echo "LIST" | pat compose INQUIRY -s "REQUEST"
+yad --center --timeout-indicator=top --title="Not found" --text-align=center --width="400" height="300" \
+--text="\rCatelog list not found in your Winlink inbox.\rA request has been posted to your outbox.\rPlease make a Winlink connection to send the request. \
+Wait 5 minutes and make another Winlink connection to get the catelog list delivered to your inbox. Then run the Catelog Update again in Pat Menu" \
+--button=gtk-ok
+${MAIN} & exit

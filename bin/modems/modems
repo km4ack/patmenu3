@@ -1,0 +1,31 @@
+#!/bin/bash
+
+#Pat Modems
+#20220309 KM4ACK
+#03MARCH2025 last edit km4ack
+
+LOGO=${MYPATH}/pmlogo.png
+MAIN=${MYPATH}/./patmenu
+VERSION=$(cat ${MYPATH}/changelog | grep release | head -1 | sed 's/release=//')
+
+source ${MYPATH}/data/config
+
+
+
+yad --form --width=420 --text-align=center --center --title="Pat Menu" --text-align=center \
+--image $LOGO --window-icon=${LOGO} --image-on-top --separator="|" --item-separator="|" \
+--text="<b>Pat Menu</b> by KM4ACK\rv${VERSION}" \
+--field="Start ARDOP Modem":fbtn 'bash -c "${MYPATH}/bin/modems/start-pat-ardop"' \
+--field="Start Packet Modem":fbtn 'bash -c "${MYPATH}/bin/modems/start-pat2m"' \
+--field="Start Mobilinkd Modem Bluetooth":fbtn 'bash -c "${MYPATH}/bin/modems/mobilink"' \
+--field="Start Mobilinkd Modem Wired":fbtn 'bash -c "${MYPATH}/bin/modems/mobi-wired"' \
+--field="Start VARA Modem":fbtn 'bash -c "${MYPATH}/bin/modems/start-vara-hf"' \
+--field="Start VARA FM Modem":fbtn 'bash -c "${MYPATH}/bin/modems/start-vara-fm"' \
+--field="Stop Modems":fbtn 'bash -c "${MYPATH}/bin/modems/stop-modems"' \
+--button="Main Menu":1
+BUT=$?
+
+if [ $BUT = 1 ]; then
+  ${MAIN} &
+  exit
+fi

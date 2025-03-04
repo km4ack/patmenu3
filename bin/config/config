@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#22FEB2025 last edit
+
+LOGO=${MYPATH}/pmlogo.png
+MAIN=${MYPATH}/patmenu
+
+
+yad --form --width=420 --text-align=center --center --title="Settings" --text-align=center \
+--image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+--text="<b>Pat Menu Settings/Config</b> by KM4ACK" \
+--field="Current Config Settings":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/config/config_current"' \
+--field="Create New Config File":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/config/config_new"' \
+--field="Load Config File":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/config/config_load"' \
+--field="Delete Config File":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/config/config_delete"' \
+--button="Main Menu":1
+BUT=$?
+
+if [ $BUT = 1 ]; then
+  ${MAIN} & exit
+fi

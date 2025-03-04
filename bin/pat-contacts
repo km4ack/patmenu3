@@ -1,0 +1,209 @@
+#!/bin/bash
+
+#20241115 km4ack
+#22FEB2025 last edit KM4ACK
+
+logo=${MYPATH}/pmlogo.png
+contact_list=${MYPATH}/data/pat_contact_list.txt
+MAIN=${MYPATH}/patmenu
+temp_cc=/run/user/$UID/temp_cc
+touch ${contact_list}
+
+contact_list(){
+  list=$(
+  while read -r line; do
+  echo ${line} | awk -F "|" '{print $1}' | sed 's/|/ /'
+  echo ${line} | awk -F "|" '{print $2}'
+  echo ${line} | awk -F "|" '{print $3}'
+  echo ${line} | awk -F "|" '{print $4}'
+  done < ${contact_list} | yad --list --grid-lines=hor --column="First" --column="Last" --column="Call" --column="Notes" --height=400 --width=600 --image ${logo} --title="Pat Contacts" --text="<b>Click on any column to sort</b>" --center --search-column=2 \
+  --button="Cancel":1 \
+  --button="Compose":2)
+  but=$?
+  if [ ${but} = 1 ]; then
+    menu
+  elif [ ${but} = 252 ]; then
+    exit
+  fi
+
+  to_call=$(echo ${list} | awk -F "|" '{print $3}')
+  compose
+}
+
+compose(){
+   EMAIL=$(yad --center --form --editable --height=500 --width=500 --title="Quick Compose" --image ${logo} \
+   --field="To":CB "${to_call}" \
+   --field="CC" \
+   --field="Subject" \
+   --field="Body":TXT \
+   --button="Cancel":1 \
+   --button="Post Email":2)
+   but=$?
+   if [ ${but} = 1 ]; then
+       menu
+   elif [ ${but} = 252 ]; then
+       exit
+   fi
+
+   TO=$(echo ${EMAIL} | awk -F "|" '{print $1}')
+   CC=$(echo ${EMAIL} | awk -F "|" '{print $2}')
+   SUBJECT=$(echo ${EMAIL} | awk -F "|" '{print $3}')
+   BODY=$(echo ${EMAIL} | awk -F "|" '{print $4}')
+
+  #each CC address needs to be preceeded by "-c". The array loop below is used to add the "-c"
+   echo ${CC} > ${temp_cc}
+   array=$(cat /run/user/$UID/temp_cc)
+   for element in ${array[*]}; do
+     NEW_CC=$(echo ${NEW_CC} -c ${element})
+   done
+ 
+   echo -e "${BODY}" | pat compose "${TO}" ${NEW_CC} -s "${SUBJECT}"
+   yad --center --height=300 --width=300 --text-align="center" --text="\rMessage posted to Pat outbox" --title="Contacts" --image ${logo} --button=gtk-ok
+   menu
+}
+
+add_contact(){
+  add=$(yad --center --form --editable --height=500 --width=500 --title="Add Contact" --image ${logo} \
+  --field="First Name" \
+  --field="Last Name" \
+  --field="Call Sign" \
+  --field="Notes":TXT \
+  --button="Cancel":1 \
+  --button="Add Contact":2)
+  but=$?
+  if [ ${but} = 252 ]; then
+      exit
+  elif [ ${but} = 1 ]; then
+      menu
+  fi
+
+  first=$(echo ${add} | awk -F "|" '{print $1}')
+  last=$(echo ${add} | awk -F "|" '{print $2}')
+  call=$(echo ${add} | awk -F "|" '{print $3}')
+  note=$(echo ${add} | awk -F "|" '{print $4}')
+  
+  if [ -z ${first} ]; then
+    first="-"
+  fi
+  if [ -z ${last} ]; then
+    last="-"
+  fi
+  if [ -z ${call} ]; then
+    call="-"
+  fi
+  if [ -z "${note}" ]; then
+    note="-"
+  fi
+
+  echo "${first}|${last}|${call}|${note}|" >> ${contact_list}
+  yad --center --height=300 --width=300 --text-align="center" --text="\rContact added" --title="Contacts" --image ${logo} --button=gtk-ok
+  menu
+}
+
+delete_contact(){
+  list=$(
+  while read -r line; do
+  echo ${line} | awk -F "|" '{print $1}' | sed 's/|/ /'
+  echo ${line} | awk -F "|" '{print $2}'
+  echo ${line} | awk -F "|" '{print $3}'
+  echo ${line} | awk -F "|" '{print $4}'
+  done < ${contact_list} | yad --list --grid-lines=hor --column="First" --column="Last" --column="Call" --column="Notes" --height=400 --width=600 --image ${logo} --title="Delete Contact" --text="Chose contact to delete" --center --search-column=2 \
+  --button="Cancel":1 \
+  --button="Delete Contact":2)
+  but=$?
+  if [ ${but} = 1 ]; then
+    menu
+  elif [ ${but} = 252 ]; then
+    exit
+  fi
+
+  sed -i "/$list/d" ${contact_list}
+  yad --center --height=300 --width=300 --text-align="center" --text="\rContact deleted" --title="Contacts" --image ${logo} --button=gtk-ok
+  menu
+}
+
+modify(){
+  list=$(
+  while read -r line; do
+  echo ${line} | awk -F "|" '{print $1}' | sed 's/|/ /'
+  echo ${line} | awk -F "|" '{print $2}'
+  echo ${line} | awk -F "|" '{print $3}'
+  echo ${line} | awk -F "|" '{print $4}'
+  done < ${contact_list} | yad --list --grid-lines=hor --column="First" --column="Last" --column="Call" --column="Notes" --height=400 --width=600 --image ${logo} --title="Contacts" --text="<b>Click on any column to sort</b>" --center --search-column=2 \
+  --button="Cancel":1 \
+  --button="Modify Record":2)
+  but=$?
+  if [ ${but} = 1 ]; then
+    menu
+  elif [ ${but} = 252 ]; then
+    exit
+  fi
+
+  first=$(echo ${list} | awk -F "|" '{print $1}')
+  last=$(echo ${list} | awk -F "|" '{print $2}')
+  call=$(echo ${list} | awk -F "|" '{print $3}')
+  note=$(echo ${list} | awk -F "|" '{print $4}')
+
+  add=$(yad --center --form --editable --height=500 --width=500 --image ${logo} --title="Contacts" \
+  --field="First Name" "$first" \
+  --field="Last Name" "$last" \
+  --field="Call Sign" "$call" \
+  --field="Notes:TXT" "$note" \
+  --button="Cancel":1 \
+  --button="Modify Contact":2)
+  but=$?
+  if [ ${but} = 252 ]; then
+      exit
+  elif [ ${but} = 1 ]; then
+      menu
+  fi
+
+  first=$(echo ${add} | awk -F "|" '{print $1}')
+  last=$(echo ${add} | awk -F "|" '{print $2}')
+  call=$(echo ${add} | awk -F "|" '{print $3}')
+  note=$(echo ${add} | awk -F "|" '{print $4}')
+  
+  if [ -z ${first} ]; then
+    first="-"
+  fi
+  if [ -z ${last} ]; then
+    last="-"
+  fi
+  if [ -z ${call} ]; then
+    call="-"
+  fi
+  if [ -z "${note}" ]; then
+    note="-"
+  fi
+
+  sed -i "/$list/d" ${contact_list}
+  echo "${first}|${last}|${call}|${note}|" >> ${contact_list}
+  yad --center --height=300 --width=300 --text-align="center" --text="\rContact updated" --title="Contacts" --image ${logo} --button=gtk-ok
+  menu
+}
+
+menu(){
+  yad --center --height=100 --width=300 --title="Pat Contacts" --text="<b><big>Contacts</big></b> by KM4ACK" --image ${logo} --text-align=center \
+  --button="Main Menu":1 \
+  --button="Add Contact":2 \
+  --button="Delete Contact":3 \
+  --button="Edit Contact":4 \
+  --button="See Contact List":5
+  but=$?
+  case ${but} in
+    1)
+      ${MAIN} & exit ;;
+    2)
+      add_contact ;;
+    3)
+      delete_contact ;;
+    4)
+      modify ;;
+    5)
+      contact_list ;;
+    252)
+      exit ;;
+  esac
+}
+menu
+

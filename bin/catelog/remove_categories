@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#script will remove categories to the category.txt file.
+#21FEB2025 KM4ACK
+
+file=${MYPATH}/data/category.txt
+temp=/run/user/$UID/delete_category
+MAIN=${MYPATH}/bin/catelog/catelog
+
+cat ${file} | yad --width=750 --height=500 --title="Update Categories" --image=$LOGO \
+--center --list --search-column=2 --multiple --grid-lines=hor \
+--column="ID" --text="Select categories to remove." --button="Remove Categories":2 | sed 's/|//g'> ${temp}
+
+while read -r line; do
+  sed -i "/${line}/d" ${file}
+done < ${temp}
+
+yad --no-buttons --timeout=2 --center --timeout-indicator=top --title="Deleted" --text-align=center --width="300" height="300" \
+--text="Categories removed"
+
+${MAIN} & exit

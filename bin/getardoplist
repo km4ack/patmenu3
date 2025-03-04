@@ -1,0 +1,236 @@
+#!/bin/bash
+
+#This script will download the ardop list to the path set below
+#It is intended to be run by cron daily
+#to keep the list current. km4ack 20181214
+#Hint: create a cron job that reads
+#30 23 * * * /usr/local/bin/getardoplist
+#This script is provided AS IS
+#Feel free to mod for your use
+
+#Two versions of this script exist. One for manual downloads and
+#one for cron downloads. The one for cron has no YAD interface.
+#Cron wouldn't run correctly with YAD in the code. The other file
+#is .getardoplist-cron
+
+TODAY=$(date)
+
+#path where files are located
+#must match path in findardop script
+MYVARA=$MYPATH/data/vara-list/
+MYARDOP=$MYPATH/data/ardop-list/
+
+#my log file
+LOG=$HOME/Documents/mylog.txt
+
+GRIDCK=$(jq .locator $HOME/.config/pat/config.json)
+if [ ${#GRIDCK} -lt 3 ]; then
+  echo "Grid square not set in Pat Configure" | tee -a $LOG
+  echo "Distances/Bearings will not be accurate"
+  yad --center  \
+  --text="Grid square not set in Pat Configure File.\r Run \'pat configure\' to fix"
+  exit
+fi
+
+#make directory if it doesn't exist
+mkdir -p $MYARDOP $MYVARA
+
+#set variables for each ardop list
+FILE=$MYARDOP'ardoplist.txt'
+EIGHTY=$MYARDOP'80mardoplist.txt'
+FORTY=$MYARDOP'40mardoplist.txt'
+TWENTY=$MYARDOP'20mardoplist.txt'
+THIRTY=$MYARDOP'30mardoplist.txt'
+PACKET=$MYARDOP'packet.txt'
+
+#set variables for each vara list
+VARAFILE=$MYVARA'varalist.txt'
+VARAEIGHTY=$MYVARA'80mvaralist.txt'
+VARAFORTY=$MYVARA'40mvaralist.txt'
+VARATWENTY=$MYVARA'20mvaralist.txt'
+VARATHIRTY=$MYVARA'30mvaralist.txt'
+VARAFM=$MYVARA'varafm.txt'
+
+GRID=$(grep locator $HOME/.config/pat/config.json | sed 's/"locator"://;s/"//g;s/,//;s/ //g')
+echo "GRID=$GRID" > $HOME/patmenu2/.grid
+
+#check internet connection
+echo "Please wait while we check your internet connection"
+echo "This may take up to a minute"
+#yad --center --timeout=3 --timeout-indicator=top --no-buttons \
+#--text="Please wait while we check your connection \rThis can take up to 30 seconds" &
+wget -q --tries=5 --timeout=10 --spider http://google.com #| yad --center --progress --pulsate --timeout-indicator=top --auto-close --no-buttons --text="Checking internet connection"
+if [[ $? -eq 0 ]]; then
+	echo
+  #yad --center --timeout=2 --timeout-indicator=top --no-buttons --text="Connection Detected" &
+	echo
+  echo "Please wait while files are download"
+	echo "This may take several minutes"
+	echo "Depending on your internet speed"
+else
+  yad --center --timeout=3 --timeout-indicator=top --no-buttons --text="You are not connected to the internet"
+	exit
+fi
+#remove old vara files before downloading new ones
+if [ -f $VARATHIRTY ]; then
+	rm $VARATHIRTY
+fi
+
+if [ -f $VARAFILE ]; then
+	rm $VARAFILE
+fi
+
+if [ -f $VARAEIGHTY ]; then
+  rm $VARAEIGHTY
+fi
+
+if [ -f $VARAFORTY ]; then
+  rm $VARAFORTY
+fi
+
+if [ -f $VARATWENTY ]; then
+	rm $VARATWENTY
+fi
+
+if [ -f $VARAFM ]; then
+	rm $VARAFM
+fi
+
+#remove old ardop list before downloading new ones
+if [ -f $THIRTY ]; then
+	rm $THIRTY
+fi
+
+if [ -f $FILE ]; then
+	rm $FILE
+fi
+
+if [ -f $EIGHTY ]; then
+  rm $EIGHTY
+fi
+
+if [ -f $FORTY ]; then
+  rm $FORTY
+fi
+
+if [ -f $TWENTY ]; then
+	rm $TWENTY
+fi
+
+if [ -f $PACKET ]; then
+	rm $PACKET
+fi
+
+#create file that has grid variable used in calculations
+touch ${MYPATH}/data/ardop-list/grid.txt
+MYGRID=$(grep locator $HOME/.config/pat/config.json | sed 's/.*": //;s/"//g;s/,//')
+echo "GRID=$MYGRID" > ${MYPATH}/data/ardop-list/grid.txt
+echo "LASTDL=List downloaded `date`" >> ${MYPATH}/data/ardop-list/grid.txt
+
+
+#download list to individual files.
+DL(){
+  pat rmslist -s --mode ardop --force-download >> $FILE 
+  pat rmslist -s --band 80m --mode ardop --force-download >> $EIGHTY 
+  pat rmslist -s --band 40m --mode ardop --force-download >> $FORTY 
+  pat rmslist -s --band 20m --mode ardop --force-download >> $TWENTY 
+  pat rmslist -s --band 30m --mode ardop --force-download >> $THIRTY 
+  pat rmslist -s --mode packet --force-download >> $PACKET
+
+  pat rmslist -s --mode vara --force-download >> $VARAFILE 
+  pat rmslist -s --band 80m --mode vara --force-download >> $VARAEIGHTY 
+  pat rmslist -s --band 40m --mode vara --force-download >> $VARAFORTY 
+  pat rmslist -s --band 20m --mode vara --force-download >> $VARATWENTY 
+  pat rmslist -s --band 30m --mode vara --force-download >> $VARATHIRTY
+  pat rmslist -s --band 2m --mode varafm --force-download >> $VARAFM
+
+  yad --center --timeout=2 --timeout-indicator=top --no-buttons --text="Downloads Done" &
+}
+DL | yad --center --progress --pulsate --auto-close --no-buttons --text-align=center \
+--text="Downloading....This takes ~30 seconds\r<b>DO NOT CLOSE THIS WINDOW</b>\rDoing so will abort the download."
+
+#as of August 2022 the downloaded VARA lists do not include the URL needed for pat.
+#This section will generate the needed URL and update the downloaded files.
+
+#####GENERATE URL FOR 20M VARA File###########
+VARATEMP=/run/user/$UID/varatemp
+if [ -f $VARATEMP ]; then
+  rm $VARATEMP
+fi
+sed -i '/^$/d' $VARATWENTY
+sed -i '1,3d' $VARATWENTY
+
+while read -r line; do
+  CALL=$(echo $line | awk '{print$1}')
+  FREQ=$(echo $line | sed 's/.*14./14./' | awk '{print$1}' | sed 's/\.//')
+  URL="vara:///$CALL?freq=$FREQ"
+  echo $line | sed "s|<nil>|${URL}|" >> $VARATEMP
+done <$VARATWENTY
+
+mv $VARATEMP $VARATWENTY
+
+##############################################
+#####GENERATE URL FOR 30M VARA File###########
+VARATEMP=/run/user/$UID/varatemp
+if [ -f $VARATEMP ]; then
+  rm $VARATEMP
+fi
+sed -i '/^$/d' $VARATHIRTY
+sed -i '1,3d' $VARATHIRTY
+
+while read -r line; do
+  CALL=$(echo $line | awk '{print$1}')
+  FREQ=$(echo $line | sed 's/.*10./10./' | awk '{print$1}' | sed 's/\.//')
+  URL="vara:///$CALL?freq=$FREQ"
+  echo $line | sed "s|<nil>|${URL}|" >> $VARATEMP
+done <$VARATHIRTY
+
+mv $VARATEMP $VARATHIRTY
+
+##############################################
+
+#####GENERATE URL FOR 40M VARA File###########
+VARATEMP=/run/user/$UID/varatemp
+if [ -f $VARATEMP ]; then
+  rm $VARATEMP
+fi
+sed -i '/^$/d' $VARAFORTY
+sed -i '1,3d' $VARAFORTY
+
+while read -r line; do
+  CALL=$(echo $line | awk '{print$1}')
+  FREQ=$(echo $line | sed 's/.*7./7./' | awk '{print$1}' | sed 's/\.//')
+  URL="vara:///$CALL?freq=$FREQ"
+  echo $line | sed "s|<nil>|${URL}|" >> $VARATEMP
+done <$VARAFORTY
+
+mv $VARATEMP $VARAFORTY
+
+##############################################
+#####GENERATE URL FOR 80M VARA File###########
+VARATEMP=/run/user/$UID/varatemp
+if [ -f $VARATEMP ]; then
+  rm $VARATEMP
+fi
+sed -i '/^$/d' $VARAEIGHTY
+sed -i '1,3d' $VARAEIGHTY
+
+while read -r line; do
+  CALL=$(echo $line | awk '{print$1}')
+  FREQ=$(echo $line | sed 's/.*3./3./' | awk '{print$1}' | sed 's/\.//')
+  URL="vara:///$CALL?freq=$FREQ"
+  echo $line | sed "s|<nil>|${URL}|" >> $VARATEMP
+done <$VARAEIGHTY
+
+mv $VARATEMP $VARAEIGHTY
+
+##############################################
+
+
+if [ -f "$FILE" ]; then
+  echo $TODAY" RMS Gateway list download Success" >> $LOG
+  echo;echo "RMS gateway list download success"
+else
+  echo $TODAY" RMS Gateway list download FAIL" >> $LOG
+  echo;echo "RMS gateway list failed to download"
+fi

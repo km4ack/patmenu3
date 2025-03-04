@@ -1,0 +1,50 @@
+#!/bin/bash
+
+#last edit 21FEB2025 KM4ACK
+
+CONFIG=$HOME/.config/pat/config.json
+LOGO=${MYPATH}/pmlogo.png
+MAIN=${MYPATH}/bin/pat_admin/pat_admin
+
+OPERATOR=$(yad --form --width=420 --text-align=center --center --title="Pat Log In/Out" --text-align=center \
+--image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+--text="<b>Pat Log In/Out</b> by KM4ACK" \
+--field="Call Sign" "" \
+--field="Winlink Password" "" \
+--field="Six Character Grid Square" "EM65TV" \
+--button="Log In":2 \
+--button="Log Out":3 \
+--button="Cancel":1)
+BUT=$?
+
+if [ $BUT = 252 ]; then
+  exit
+elif [ $BUT = 1 ]; then
+  ${MAIN}
+elif [ $BUT = 2 ]; then
+  CALLSIGN=$(echo ${OPERATOR} | awk -F "|" '{print $1}')
+  CALLSIGN=$(echo "${CALLSIGN^^}")
+  PASS=$(echo ${OPERATOR} | awk -F "|" '{print $2}')
+  GRID=$(echo ${OPERATOR} | awk -F "|" '{print $3}')
+  GRID=$(echo "${GRID^^}")
+  #set callsign
+  sed -i "s/\"mycall\": \".*\",/\"mycall\": \"${CALLSIGN}\",/" ${CONFIG}
+  #set password
+  sed -i "s/\"secure_login_password\": \".*\",/\"secure_login_password\": \"${PASS}\",/" ${CONFIG}
+  #set locator
+  sed -i "s/\"locator\": \".*\",/\"locator\": \"${GRID}\",/" ${CONFIG}
+  sudo -A systemctl restart pat@$USER
+  $MAIN & exit
+elif [ $BUT = 3 ]; then
+  CALLSIGN=N0CALL
+  PASS=""
+  GRID=""
+  #set callsign
+  sed -i "s/\"mycall\": \".*\",/\"mycall\": \"${CALLSIGN}\",/" ${CONFIG}
+  #set password
+  sed -i "s/\"secure_login_password\": \".*\",/\"secure_login_password\": \"${PASS}\",/" ${CONFIG}
+  #set locator
+  sed -i "s/\"locator\": \".*\",/\"locator\": \"${GRID}\",/" ${CONFIG}
+  sudo -A killall pat
+  $MAIN & exit
+fi

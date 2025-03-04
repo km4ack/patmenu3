@@ -1,0 +1,63 @@
+#!/bin/bash
+
+#23FEB2025 last edit KM4ACK
+
+export MYPATH="$(cd "$(dirname "$0")" && pwd)"
+
+#cp any config file from old pat version
+if [ -d $HOME/patmenu2 ]; then
+  for file in $HOME/patmenu2/*.config; do
+    if [ "${file}" = "$HOME/patmenu2/default.config" ]; then
+      continue
+    else
+      cp ${file} ${MYPATH}/data/
+    fi
+  done
+
+  #remove old desktop file
+  if [ -f /usr/local/share/applications/patmenu.desktop ]; then
+    rm /usr/local/share/applications/patmenu.desktop
+  fi
+    if [ -f /usr/local/share/applications/patmenu2.desktop ]; then
+    rm /usr/local/share/applications/patmenu2.desktop
+  fi
+fi
+
+#make files executable
+chmod +x ${MYPATH}/patmenu
+chmod +x ${MYPATH}/bin/getgrid ${MYPATH}/bin/pat-contacts ${MYPATH}/bin/getardoplist ${MYPATH}/bin/stats ${MYPATH}/bin/.getardoplist-cron
+chmod +x ${MYPATH}/bin/catelog/*
+chmod +x ${MYPATH}/bin/config/*
+chmod +x ${MYPATH}/bin/find-gateways/*
+chmod +x ${MYPATH}/bin/manage_mail/*
+chmod +x ${MYPATH}/bin/modems/*
+chmod +x ${MYPATH}/bin/pat_admin/*
+chmod +x ${MYPATH}/bin/pos/*
+chmod +x ${MYPATH}/bin/sms/add-carrier ${MYPATH}/bin/sms/current-carriers \
+${MYPATH}/bin/sms/manage-sms ${MYPATH}/bin/sms/remove-carrier ${MYPATH}/bin/sms/winlink2sms
+
+
+#create shortcut
+cat <<EOF >${MYPATH}/data/patmenu.desktop 
+[Desktop Entry]
+Name=Pat Menu
+GenericName=Amateur Radio Digital Modem
+Comment=Amateur Radio Sound Card Communications
+Exec=${MYPATH}/patmenu
+Icon=${MYPATH}/pmlogo.png
+Terminal=false
+Type=Application
+Categories=Network;HamRadio;
+EOF
+
+if [ -z $SUDO_ASKPASS ]; then
+  echo "creating menu shortcut for patmenu"
+  echo "enter sudo password if asked"
+  sudo cp ${MYPATH}/data/patmenu.desktop /usr/local/share/applications/
+else
+  sudo -A cp ${MYPATH}/data/patmenu.desktop /usr/local/share/applications/
+fi
+
+
+
+

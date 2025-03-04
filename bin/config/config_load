@@ -1,0 +1,41 @@
+#!/bin/bash
+
+#22FEB2025 last edit
+
+MAIN=${MYPATH}/bin/config/config
+LOGO=${MYPATH}/pmlogo.png
+OUTFILE=/run/user/$UID/configlist.tmp
+
+ls ${MYPATH}/data | grep .config > ${OUTFILE}
+
+INFO=$(PARSER='OFS="\n" {print $1}'
+
+tail -10 ${OUTFILE} | awk "$PARSER" | \
+yad --title="Load Config" --width=400 --height=500 \
+    --image $LOGO --window-icon=$LOGO --image-on-top \
+    --center --list --text="Choose Config File to load" \
+    --column Config-files \
+    --button="Cancel":1 \
+    --button="Load Config File":2)
+BUT=$?
+NEWCONFIG=$(echo ${INFO} | awk -F "|" '{print $1}')
+
+if [ ${BUT} = 252 ]; then
+  exit
+elif [ ${BUT} = 1 ]; then
+  ${MAIN} & exit
+elif [ ${BUT} = 2 ]; then
+	if [ -z $NEWCONFIG ]; then
+	  ${MAIN} & exit
+	else
+	  cp $MYPATH/data/${NEWCONFIG} ${MYPATH}/data/config
+	  echo "CONF=${NEWCONFIG}" > ${MYPATH}/data/.currentconf 		#write config file name to a file
+	  rm ${OUTFILE}
+	  yad --title="Config Loaded" --width=400 --height=200 \
+          --image $LOGO --window-icon=$LOGO --image-on-top \
+	  --center --text="$NEWCONFIG loaded" \
+	  --button=gtk-ok
+	  ${MAIN} &
+	  exit
+	fi
+fi

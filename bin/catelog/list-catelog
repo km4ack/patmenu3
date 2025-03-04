@@ -1,0 +1,60 @@
+#!/bin/bash
+
+#define the list
+catelog=${MYPATH}/data/list.b2f
+out=/run/user/$UID/catelog_output.txt
+categories=${MYPATH}/data/category.txt
+MAIN=${MYPATH}/bin/catelog/catelog
+
+if [ -f ${out} ]; then
+  rm ${out}
+fi
+
+yad --no-buttons --timeout=5 --center --timeout-indicator=top --title="Sorting" --text-align=center --width="300" height="300" \
+--text="Sorting the catelog. This takes 10-30 seconds\rThe list will open soon" &
+
+#process the list to get the columns we need
+tail -n +21 ${catelog} | awk -F'"' '{for(i=2;i<=NF;i+=2) print $1" "$2" "$i}' > /run/user/$UID/catelog_list.txt
+
+#scrape the list for categories defined in category.txt file
+while read category; do
+  while read line; do
+    ck=$(echo "${line}" | grep ${category})
+    if [ -z "${ck}" ]; then
+      continue
+    else
+      echo ${line} >> ${out}
+    fi
+  done </run/user/$UID/catelog_list.txt
+done <${categories}
+
+#present the data to the user
+INFO=$(PARSER='OFS="\n" {print $1, $2, substr($0,index($0,$3))}'
+tail -1500 /run/user/$UID/catelog_output.txt | awk "$PARSER" | \
+yad 2> /dev/null --title="Search Results" --width=1100 --height=500 \
+--image $LOGO --window-icon=$LOGO --image-on-top \
+--center --list --text="Catelog Items" \
+--column Category --column ID --column Subject \
+--button=gtk-close:1 \
+--button="Post to Outbox":2)
+but=$?
+
+if [ ${but} = 1 ]; then
+  ${MAIN} & exit
+fi
+
+if [ -z ${INFO} ]; then
+  ${MAIN} & exit
+else
+  #post the request to the Pat outbox
+  ID=$(echo ${INFO} | awk -F "|" '{print $2}')
+  echo ${ID} | pat compose INQUIRY -s REQUEST
+  yad --no-buttons --timeout=2 --center --timeout-indicator=top --title="POSTED" --text-align=center --width="300" height="300" \
+  --text="Request posted to Pat outbox"
+  ${MAIN} & exit
+fi
+
+
+
+
+

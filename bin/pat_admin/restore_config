@@ -1,0 +1,35 @@
+#!/bin/bash
+
+#last edit 21FEB2025 KM4ACK
+
+CONFIG=${HOME}/.config/pat/config.json
+OUTFILE=/run/user/$UID/config.list
+LOGO=${MYPATH}/pmlogo.png
+MAIN=${MYPATH}/bin/pat_admin/pat_admin
+
+ls ${HOME}/.config/pat/ | grep .bkup > ${OUTFILE}
+
+INFO=$(PARSER='OFS="\n" {print $1}'
+tail -10 ${OUTFILE} | awk "$PARSER" | \
+yad --title="Restore Config" --width=1100 --height=500 \
+    --image $LOGO --window-icon=$LOGO --image-on-top \
+    --center --list --text="Choose File to Restore" \
+    --column File-to-Restore \
+    --button="Cancel":1 \
+    --button="Restore File":2)
+BUT=$?
+
+if [ ${BUT} = 252 ]; then
+  exit
+elif [ ${BUT} = 1 ]; then
+  ${MAIN} exit
+fi
+FILE=$(echo ${INFO} | awk -F "|" '{print $1}')
+cp ${HOME}/.config/pat/${FILE} ${CONFIG}
+sudo -A killall pat
+sudo -A systemctl start pat@${USER}
+yad --form --width=420 --text-align=center --center --title="Config Restore" --text-align=center \
+--image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+--text="<b>Config Restore</b> by KM4ACK\r\r<b>RESTROE COMPLETE</b>" \
+--button=gtk-ok
+${MAIN}
