@@ -9,9 +9,10 @@ GRIDSEARCH(){
   OUTFILE=/run/user/$UID/tempardoplist.txt
   CONFIG=$HOME/.config/pat/config.json
   TEMP=/run/user/$UID/tempconfig.txt
-  ARDOPLIST=$MYPATH/data/ardop-list
-  VARALIST=$MYPATH/data/vara-list
+  ARDOPLIST=${MYPATH}/data/ardop-list
+  VARALIST=${MYPATH}/data/vara-list
   LOGO=${MYPATH}/pmlogo.png
+  MAIN=${MYPATH}/bin/find-gateways/find2
   source $MYPATH/data/config	#patmenu config file
   #check to make sure user has downloaded
   if [ ! -d "$MYPATH/data/ardop-list/" ]; then
@@ -21,8 +22,8 @@ GRIDSEARCH(){
     --button="Download":2
     BUT=$?
 	  if [ $BUT = 2 ]; then
-	    $MYPATH/getardoplist
-	    $MAIN &
+	    ${MYPATH}/bin/getardoplist
+	    ${MAIN} &
 	    exit
 	  elif [ $BUT = 252 ]; then
 	    exit
@@ -45,28 +46,28 @@ GRIDSEARCH(){
     GRID=$(echo "${GRID^^}")
     BAND=$(echo $SEARCH | awk -F "|" '{print $3}')
 
-    echo "Grid search is $GRID"
-    echo "Band is $BAND"
+    echo "Grid search is ${GRID}"
+    echo "Band is ${BAND}"
 
-    if [ $QUIT = 1 ]; then
-      $MAIN &
+    if [ ${QUIT} = 1 ]; then
+      ${MAIN} &
       exit
-    elif [ $QUIT = 252 ]; then
+    elif [ ${QUIT} = 252 ]; then
       exit
     fi
 
     ##############PACKET SEARCH######################
     if [ $QUIT = 2 ] && [ "$BAND" = '2M-70CM' ]; then
     #########START PACKET SECTION######################
-      FILE=$MYPATH/data/ardop-list/packet.txt
+      FILE=${MYPATH}/data/ardop-list/packet.txt
       TEMP=/run/user/$UID/temppacket.txt
       TEMP1=/run/user/$UID/templist.txt
       TEMP2=/run/user/$UID/tempalias.txt
-      echo "Grid search is $GRID"
-      cat $FILE | egrep -i $GRID[[:digit:]]{2} | tee "$TEMP" > /dev/null 2>&1
+      echo "Grid search is ${GRID}"
+      cat $FILE | egrep -i ${GRID}[[:digit:]]{2} | tee "${TEMP}" > /dev/null 2>&1
       INFO=$(PARSER='OFS="\n" {print $1, $2, $3, $4, $5, $6, $7, $9, $11}'
       MYTEMP=$TEMP2
-      tail -1000 $TEMP | awk "$PARSER" | \
+      tail -1000 ${TEMP} | awk "${PARSER}" | \
       yad --title="Search Results" --width=1100 --height=500 \
       --image $LOGO --window-icon=$LOGO --image-on-top --multiple \
       --center --list --text="Search Results" \
@@ -77,28 +78,28 @@ GRIDSEARCH(){
       --button=gtk-close \
       --button="Add Alias":2 > $MYTEMP)
       BUT=$?
-        if [ "$BUT" = 2 ];then
-          CALL=$(echo $INFO | awk -F "|" '{print $1}')
-          SC=$(echo $INFO | awk -F "|" '{print $9}')
-          FREQ=$(echo $SC | sed 's/.*=//')
-	          if [ $RIGCONTROL = 'no' ]; then
-	            SC=$(echo $SC | sed 's/[?].*$//')
+        if [ "${BUT}" = 2 ];then
+          CALL=$(echo ${INFO} | awk -F "|" '{print $1}')
+          SC=$(echo ${INFO} | awk -F "|" '{print $9}')
+          FREQ=$(echo ${SC} | sed 's/.*=//')
+	          if [ ${RIGCONTROL} = 'no' ]; then
+	            SC=$(echo ${SC} | sed 's/[?].*$//')
 	          fi
 	    
           while read LINE; do
-            CALL=$(echo $LINE | awk -F "|" '{print $1}')
-            SC=$(echo $LINE | awk -F "|" '{print $9}')
-            FREQ=$(echo $SC | sed 's/.*=//')
-	          if [ $RIGCONTROL = 'no' ]; then
-	            SC=$(echo $SC | sed 's/[?].*$//')
+            CALL=$(echo ${LINE} | awk -F "|" '{print $1}')
+            SC=$(echo ${LINE} | awk -F "|" '{print $9}')
+            FREQ=$(echo ${SC} | sed 's/.*=//')
+	          if [ ${RIGCONTROL} = 'no' ]; then
+	            SC=$(echo ${SC} | sed 's/[?].*$//')
 	          fi
 
-            SC=$(echo $SC | sed 's/packet/ax25/')
+            SC=$(echo ${SC} | sed 's/packet/ax25/')
 
             jq '.connect_aliases += {'\""$CALL-$BAND"M"-$FREQ"\"' : '\"$SC\"'}' $CONFIG > $TEMP
-            cp $TEMP $CONFIG
-            rm $TEMP                          
-          done < $TEMP2
+            cp ${TEMP} ${CONFIG}
+            rm ${TEMP}                       
+          done < ${TEMP2}
           sudo -A killall pat
           sudo -A systemctl start pat@$USER
 

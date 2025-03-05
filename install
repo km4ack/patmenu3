@@ -16,10 +16,22 @@ if [ -d $HOME/patmenu2 ]; then
 
   #remove old desktop file
   if [ -f /usr/local/share/applications/patmenu.desktop ]; then
-    rm /usr/local/share/applications/patmenu.desktop
+    if [ -z $SUDO_ASKPASS ]; then
+      echo "removing old menu shortcuts"
+      echo "enter sudo password if asked"
+      sudo rm /usr/local/share/applications/patmenu.desktop
+    else
+      sudo -A rm /usr/local/share/applications/patmenu.desktop
+    fi
   fi
     if [ -f /usr/local/share/applications/patmenu2.desktop ]; then
-    rm /usr/local/share/applications/patmenu2.desktop
+      if [ -z $SUDO_ASKPASS ]; then
+        echo "removing old menu shortcuts"
+        echo "enter sudo password if asked"
+        sudo rm /usr/local/share/applications/patmenu2.desktop
+      else
+        sudo -A rm /usr/local/share/applications/patmenu2.desktop
+      fi
   fi
 fi
 
