@@ -75,6 +75,18 @@ SETRIG () {
   fi
 }
 
+RIGCONTROL_CHECK(){
+#function to verify config matches system (whereis rigctld)
+system_location=$(whereis rigctld | awk '{print $2}')
+config_location=$(echo ${RIG} | awk '{print $1}')
+
+if [ ${system_location} != ${config_location} ]; then
+  yad --title="MISMATCH" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+  --center --form --text="<b>INFO :: MISMATCH</b>\rrgictld is located at ${system_location}\rPat Menu config is set to ${config_location}\rQSY error may occur" \
+  --button=gtk-ok
+fi
+}
 
 #see if rig control is used
 if [ ${RIGCONTROL} == 'yes' ]; then 
@@ -84,6 +96,7 @@ if [ ${RIGCONTROL} == 'yes' ]; then
 	  ${CONTROL} &
 	  echo $PASS | sudo -S systemctl restart pat@$USER
 	fi
+  RIGCONTROL_CHECK
   SETRIG
 fi
 
