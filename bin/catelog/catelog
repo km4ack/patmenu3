@@ -3,7 +3,7 @@
 #Pat Catalog
 #20200427 KM4ACK
 #side note: written during covid-19 outbreak of 2020
-#21FEB2025 last edit KM4ACK
+#06MARCH2025 last edit KM4ACK
 
 LOGO=$MYPATH/pmlogo.png
 MAIN=$MYPATH/./patmenu
@@ -14,21 +14,21 @@ yad --form --width=420 --text-align=center --center --title="Pat Catalog" --text
 --image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
 --text="<b>Pat Catalog</b> by KM4ACK" \
 --field="Saildocs Weather":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/catelog/weather"' \
---field="Custom Winlink Catelog":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/catelog/list-catelog"' \
---field="Full Winlink Catelog":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/catelog/full_catelog"' \
---field="Add Catelog Categories":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/catelog/add_categories"' \
---field="Remove Catelog Categories":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/catelog/remove_categories"' \
---field="Update Catelog":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/catelog/update_catelog_list"' \
+--field="Custom Winlink Catalog":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/catelog/list-catelog"' \
+--field="Full Winlink Catalog":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/catelog/full_catelog"' \
+--field="Add Catalog Categories":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/catelog/add_categories"' \
+--field="Remove Catalog Categories":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/catelog/remove_categories"' \
+--field="Update Catalog":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/catelog/update_catelog_list"' \
 --field="Send SMS":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/sms/manage-sms"' \
 --field="Convert WL2K_NEARBY to APRS":fbtn 'bash -c "kill -USR1 $YAD_PID; $HOME/patmenu2/convert_to_aprs"' \
---field="Catelog Updated - ${LAST_UPDATE}":LBL \
+--field="Catalog Updated - ${LAST_UPDATE}":LBL \
 --button="Main Menu":1
 
 QUIT=$?
 
 if [ $QUIT = 1 ]; then
-$MAIN &
-exit
+  $MAIN &
+  exit
 elif [ $QUIT = 252 ]; then
-exit
+  exit
 fi
