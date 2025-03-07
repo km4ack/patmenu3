@@ -6,7 +6,10 @@
 LOGO=${MYPATH}/pmlogo.png
 MAIN=${MYPATH}/bin/config/config
 CONFIG=${HOME}/.config/pat/config.json
-PORT=$(grep http_addr ${CONFIG} | awk '{print $2}' | sed 's/.*://;s/",//')
+port=$(grep http_addr ${CONFIG} | awk '{print $2}' | sed 's/.*://;s/",//')
+pm_config=${MYPATH}/data/config
+rigctl=$(whereis rigctld | awk '{print $2}')
+rigctl="${rigctl} -m 4"
 
 #verify that flrig is running
 if [ -z `pidof flrig` ]; then
@@ -17,9 +20,7 @@ if [ -z `pidof flrig` ]; then
   exit
 fi
 
-rigctl=$(whereis rigctld | awk '{print $2}')
-rigctl="${rigctl} -m 4"
-
+#get fm data setting
 yad --title="FM" --width=400 --height=100 \
 --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
 --center --form --text="Put the radio is FM data mode" \
@@ -29,6 +30,7 @@ fm_one=$(rigctl -m 4 m | head -1)
 fm_two=$(rigctl -m 4 m | tail -1)
 fm="${fm_one} ${fm_two}"
 
+#get ssb data setting
 yad --title="SSB" --width=400 --height=100 \
 --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
 --center --form --text="Put the radio is USB data mode" \
@@ -38,13 +40,57 @@ ssb_one=$(rigctl -m 4 m | head -1)
 ssb_two=$(rigctl -m 4 m | tail -1)
 ssb="${ssb_one} ${ssb_two}"
 
-yad --title="Suggested Settings" --width=400 --height=100 \
+#show results
+suggest=$(yad --title="Suggested Settings" --width=400 --height=100 \
 --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
 --center --form --text="Suggested settings\rfor Pat Menu config" \
 --field="Rig Control Command":RO "${rigctl}" \
 --field="HF Mode for Radio":RO "${ssb}" \
 --field="2M Mode for Radio":RO "${fm}" \
---field="Pat Port":RO "${PORT}" \
---button=gtk-ok
-${MAIN}
+--field="Pat Port":RO "${port}" \
+--button="Cancel":1 \
+--button="Update Config":2)
+but=$?
+
+#update the config file
+if [ ${but} = 2 ]; then
+  echo "but 2 choosen"
+  rigctl=$(echo ${suggest} | awk -F "|" '{print $1}')
+  rigctl="RIG=\"${rigctl}\""
+  ssb=$(echo ${suggest} | awk -F "|" '{print $2}')
+  ssb="MODEHF=\"${ssb}\""
+  fm=$(echo ${suggest} | awk -F "|" '{print $3}')
+  fm="MODE2M=\"${fm}\""
+  port=$(echo ${suggest} | awk -F "|" '{print $4}')
+  port="PORT=${port}"
+
+  sed -i "s|^RIG=.*|${rigctl}|" ${pm_config}
+  sed -i "s|^MODEHF=.*|${ssb}|" ${pm_config}
+  sed -i "s|^MODE2M=.*|${fm}|" ${pm_config}
+  sed -i "s|^PORT=.*|${port}|" ${pm_config}
+
+  #give user feedback
+  yad --title="Suggested Settings" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+  --center --form --text="\rPat Menu config file updated" \
+  --button=gtk-ok
+  ${MAIN}
+elif [ ${but} = 1 ]; then
+  ${MAIN}
+fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
