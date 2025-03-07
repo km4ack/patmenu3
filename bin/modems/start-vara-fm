@@ -2,10 +2,11 @@
 
 #script to start vara fm modem
 #10MARCH2022 KM4ACK
-#27FEB2025 last edit KM4ACK
+#07MARCH2025 last edit KM4ACK
 
 LOGO=${MYPATH}/data/pmlogo.png
 source ${MYPATH}/data/config
+RIGCTL=${RIG}
 RIG=$(cat ${MYPATH}/data/config | grep RIG= | sed 's/RIG=//;s/"//g;s/rigctld/rigctl/')
 
 if [ ! -f ${HOME}/.wine/drive_c/VARA\ FM/VARAFM.exe ]; then
@@ -20,7 +21,7 @@ RIGCONTROL_CHECK(){
 #function to verify config matches system (whereis rigctld)
 system_location=$(whereis rigctld | awk '{print $2}')
 system_location2=$(whereis rigctld | awk '{print $3}')
-config_location=$(echo ${RIG} | awk '{print $1}')
+config_location=$(echo ${RIGCTL} | awk '{print $1}')
 
 if [[ ${system_location} != ${config_location} ]] && [[ ${system_location2} != ${config_location} ]]; then
   yad --title="MISMATCH" --width=400 --height=100 \
