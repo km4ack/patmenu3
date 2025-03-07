@@ -6,6 +6,7 @@
 
 LOGO=$MYPATH/pmlogo.png
 source $MYPATH/data/config
+RIGCTL=${RIG}
 RIG=$(cat ${MYPATH}/data/config | grep RIG= | sed 's/RIG=//;s/"//g;s/rigctld/rigctl/')
 
 
@@ -22,7 +23,7 @@ RIGCONTROL_CHECK(){
 #function to verify config matches system (whereis rigctld)
 system_location=$(whereis rigctld | awk '{print $2}')
 system_location2=$(whereis rigctld | awk '{print $3}')
-config_location=$(echo ${RIG} | awk '{print $1}')
+config_location=$(echo ${RIGCTL} | awk '{print $1}')
 
 if [[ ${system_location} != ${config_location} ]] && [[ ${system_location2} != ${config_location} ]]; then
   yad --title="MISMATCH" --width=400 --height=100 \
