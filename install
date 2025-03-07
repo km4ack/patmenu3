@@ -4,16 +4,7 @@
 
 export MYPATH="$(cd "$(dirname "$0")" && pwd)"
 
-#cp any config file from old pat version
 if [ -d $HOME/patmenu2 ]; then
-  for file in $HOME/patmenu2/*.config; do
-    if [ "${file}" = "$HOME/patmenu2/default.config" ]; then
-      continue
-    else
-      cp ${file} ${MYPATH}/data/
-    fi
-  done
-
   #remove old desktop file
   if [ -f /usr/local/share/applications/patmenu.desktop ]; then
     if [ -z $SUDO_ASKPASS ]; then
