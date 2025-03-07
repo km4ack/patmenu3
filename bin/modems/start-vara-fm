@@ -19,12 +19,13 @@ fi
 RIGCONTROL_CHECK(){
 #function to verify config matches system (whereis rigctld)
 system_location=$(whereis rigctld | awk '{print $2}')
+system_location2=$(whereis rigctld | awk '{print $3}')
 config_location=$(echo ${RIG} | awk '{print $1}')
 
-if [ ${system_location} != ${config_location} ]; then
+if [[ ${system_location} != ${config_location} ]] && [[ ${system_location2} != ${config_location} ]]; then
   yad --title="MISMATCH" --width=400 --height=100 \
   --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
-  --center --form --text="<b>INFO :: MISMATCH</b>\rrgictld is located at ${system_location}\rPat Menu config is set to ${config_location}\rQSY error may occur" \
+  --center --form --text="<b>Config MISMATCH</b>\rrigctld is located at ${system_location}\rPat Menu config is set to ${config_location}\rQSY error may occur" \
   --button=gtk-ok
 fi
 }
