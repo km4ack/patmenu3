@@ -87,7 +87,7 @@ SETRIG () {
   }
   sleep 1
   if [ -z ${MODE} ]; then
-  ${RIG}USB
+  ${RIGUSB}
   MODECHECK
   fi
 }
@@ -101,15 +101,11 @@ if [ ${RIGCONTROL} == 'yes' ]; then
 	    sudo -A systemctl restart pat@$USER
 	  fi
   SETRIG
-fi
-
-#Start ARDOP_GUI
-${ARDOPGUI} </dev/null &>/dev/null &			
+fi		
 
 #start modem
 gnome-terminal --geometry=55x10 -- ${ARDOP} </dev/null &>/dev/null &
 sleep 2
-
 
 #verify that piardopc is running
 PIDPIC=$(pidof ardopcf)
