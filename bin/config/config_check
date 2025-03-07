@@ -1,0 +1,50 @@
+#!/bin/bash
+
+#script helps user determine correct settings for his radio
+#07MARCH2025 km4ack
+
+LOGO=${MYPATH}/pmlogo.png
+MAIN=${MYPATH}/bin/config/config
+CONFIG=${HOME}/.config/pat/config.json
+PORT=$(grep http_addr ${CONFIG} | awk '{print $2}' | sed 's/.*://;s/",//')
+
+#verify that flrig is running
+if [ -z `pidof flrig` ]; then
+  yad --title="FLRIG Required" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+  --center --form --text="<b>FLRIG not running</b>\rPlease start and configure FLRIG.\rAfterwards, run this again" \
+  --button=gtk-ok
+  exit
+fi
+
+rigctl=$(whereis rigctld | awk '{print $2}')
+rigctl="${rigctl} -m 4"
+
+yad --title="FM" --width=400 --height=100 \
+--image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+--center --form --text="Put the radio is FM data mode" \
+--button=gtk-ok
+
+fm_one=$(rigctl -m 4 m | head -1)
+fm_two=$(rigctl -m 4 m | tail -1)
+fm="${fm_one} ${fm_two}"
+
+yad --title="SSB" --width=400 --height=100 \
+--image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+--center --form --text="Put the radio is USB data mode" \
+--button=gtk-ok
+
+ssb_one=$(rigctl -m 4 m | head -1)
+ssb_two=$(rigctl -m 4 m | tail -1)
+ssb="${ssb_one} ${ssb_two}"
+
+yad --title="Suggested Settings" --width=400 --height=100 \
+--image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+--center --form --text="Suggested settings\rfor Pat Menu config" \
+--field="Rig Control Command":RO "${rigctl}" \
+--field="HF Mode for Radio":RO "${ssb}" \
+--field="2M Mode for Radio":RO "${fm}" \
+--field="Pat Port":RO "${PORT}" \
+--button=gtk-ok
+${MAIN}
+

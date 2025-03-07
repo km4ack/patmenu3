@@ -13,6 +13,7 @@ yad --form --width=420 --text-align=center --center --title="Settings" --text-al
 --field="Create New Config File":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/config/config_new"' \
 --field="Load Config File":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/config/config_load"' \
 --field="Delete Config File":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/config/config_delete"' \
+--field="Config Helper":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/config/config_check"' \
 --button="Main Menu":1
 BUT=$?
 
