@@ -3,9 +3,11 @@
 #start ardop modem
 
 #20191118 km4ack
-#20250129 last edit km4ack
+#07MARCH2025 last edit km4ack
 
 source ${MYPATH}/data/config
+RIGCTL=${RIG}
+RIG=$(cat ${MYPATH}/data/config | grep RIG= | sed 's/RIG=//;s/"//g;s/rigctld/rigctl/')
 LOGO=${MYPATH}/pmlogo.png
 
 RIGCONTROL_CHECK(){
@@ -91,7 +93,7 @@ SETRIG () {
 }
 
 #see if rig control is used
-if [ ${RIG}CONTROL == 'yes' ]; then
+if [ ${RIGCONTROL} == 'yes' ]; then
   PIDCTL=$(pidof rigctld)
 	  if [ -z "$PIDCTL" ]; then	
 	    CONTROL=$(cat ${MYPATH}/data/config | grep '^RIG="' | sed 's/RIG="//' | sed 's/"//')
