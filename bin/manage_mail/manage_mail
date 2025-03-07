@@ -11,7 +11,7 @@ CALL=${PAT_MYCALL}
 yad --form --width=420 --text-align=center --center --title="Pat Menu" --text-align=center \
 --image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
 --text="<b>Pat Menu</b> by KM4ACK\rv$VERSION" \
---field="Archive All Email":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYAPTH}/bin/manage_mail/archive_all"' \
+--field="Archive All Email":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/manage_mail/archive_all"' \
 --field="Delete Archived Email":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/manage_mail/delete_archive"' \
 --field="Delete Sent Email":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/manage_mail/delete_sent"' \
 --field="Backup Email":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/manage_mail/backup"' \
