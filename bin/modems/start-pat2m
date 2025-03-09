@@ -2,7 +2,7 @@
 
 #script to start Pat for 2m packet work
 #20191116 km4ack
-#27FEB2025 last edit KM4ACK
+#09MARCH2025 last edit KM4ACK
 
 clear
 
@@ -102,17 +102,15 @@ if [ ${RIGCONTROL} == 'yes' ]; then
   SETRIG
 fi
 
-#added to resolve issue 24. km4ack 20200307
-/usr/local/bin/${DIREWOLF} </dev/null &>/dev/null &
+${DIREWOLF} </dev/null &>/dev/null &
 echo "Almost Done"
 sleep 5 | yad --width=350 --height=75 --auto-close --title="Direwolf" --progress --pulsate --no-buttons --center \
 --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center --text="Starting Direwolf....standby"
 #find what pt direwolf created (/dev/pts/X)
 LINK=$(ls -l /tmp/kisstnc | awk '{print $NF}')
-#end issue 24 edit. km4ack 20200307
 
 sudo -A /usr/sbin/kissattach ${LINK} ${AXP}
-sudo -A kissparms -c 1 -p wl2k
+sudo -A ${KISSPARMS} ${AXP}
 
 #verify direwolf has started
 PIDDW=$(pidof direwolf)
