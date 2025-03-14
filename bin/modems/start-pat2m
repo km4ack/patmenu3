@@ -11,6 +11,7 @@ LOGO=${MYPATH}/pmlogo.png
 source ${MYPATH}/data/config
 RIGCTL=${RIG}
 RIG=$(cat ${MYPATH}/data/config | grep RIG= | sed 's/RIG=//;s/"//g;s/rigctld/rigctl/')
+rig_settings=/run/user/$UID/rig_settings.txt
 
 #Check if FLRIG is running if user has it set in config file
 if [ "${RIGCONTROL}" = 'yes' ]; then
@@ -28,6 +29,14 @@ if [ "${RIGCONTROL}" = 'yes' ]; then
     fi
   fi
 fi
+
+#get current radio settings
+current_frequency=$(rigctl -m 4 f)
+mode_one=$(rigctl -m 4 m | head -1)
+mode_two=$(rigctl -m 4 m | tail -1)
+current_mode="${mode_one} ${mode_two}"
+echo "current_frequency=${current_frequency}" > ${rig_settings}
+echo "current_mode=\"${current_mode}\"" >> ${rig_settings}
 
 #Check if modem is already running
 MODEMCHECK=$(pidof direwolf)
