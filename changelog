@@ -8,6 +8,7 @@ Changelog
   add kissparms to config_check
   add alias export
   add alias import
+  add return rig to previous state
 3.0.0
   add config helper
   add rig control config check to all modem scripts
