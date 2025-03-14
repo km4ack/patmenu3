@@ -1,0 +1,57 @@
+#!/bin/bash
+
+#14MARCH2025 KM4ACK
+
+eval `pat env`
+outfile=/run/user/$UID/alias.list
+LOGO=${MYPATH}/pmlogo.png
+MAIN=${MYPATH}/bin/pat_admin/pat_admin
+config=${PAT_CONFIG_PATH} #primary config file
+config_temp=/run/user/$UID/config_temp.json #backup copy of config file
+
+ls ${MYPATH}/data/ | grep alias > ${outfile}
+
+INFO=$(PARSER='OFS="\n" {print $1}'
+tail -25 ${outfile} | awk "$PARSER" | \
+yad --title="Restore Aliases" --width=600 --height=500 \
+    --image $LOGO --window-icon=$LOGO --image-on-top \
+    --center --list --text="Choose List to Restore" \
+    --column File-to-Restore \
+    --button="Cancel":1 \
+    --button="Restore Aliases":2)
+but=$?
+if [ ${but} = 1 ]; then
+  ${MAIN} & exit
+elif [ ${but} = 252 ]; then
+  exit
+fi
+
+if [ -z "${INFO}" ]; then
+  yad --form --width=420 --text-align=center --center --title="un oh" --text-align=center \
+  --image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+  --text="\r<b>Nothing selected</b>" \
+  --button=gtk-ok
+  ${MAIN} & exit
+fi
+
+alias_file_name=$(echo $INFO | awk -F "|" '{print $1}')
+restore_file=${MYPATH}/data/${alias_file_name}
+
+while read line; do
+  #skip any blank lines
+  if [ -z "${line}" ]; then
+    continue
+  fi
+  first=$(echo $line | awk '{print $1}' | sed 's/://')
+  second=$(echo $line | awk '{print $2}')
+  jq '.connect_aliases += {'$first' : '$second'}' ${config} > ${config_temp}
+  cp ${config_temp} ${config}
+done < ${restore_file}
+
+sudo -A systemctl restart pat@$USER
+
+yad --form --width=420 --text-align=center --center --title="Alias Import" --text-align=center \
+--image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+--text="\rAlias Import\r<b>COMPLETE</b>" \
+--button=gtk-ok
+${MAIN} & exit
