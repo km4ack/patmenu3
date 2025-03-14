@@ -8,6 +8,7 @@ LOGO=${MYPATH}/data/pmlogo.png
 source ${MYPATH}/data/config
 RIGCTL=${RIG}
 RIG=$(cat ${MYPATH}/data/config | grep RIG= | sed 's/RIG=//;s/"//g;s/rigctld/rigctl/')
+rig_settings=/run/user/$UID/rig_settings.txt
 
 if [ ! -f ${HOME}/.wine/drive_c/VARA\ FM/VARAFM.exe ]; then
   yad --title="FAILED" --width=400 --height=100 \
