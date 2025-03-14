@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#14MARCH2025 KM4ACK
+
+eval `pat env`
+config=$(echo $PAT_CONFIG_PATH) #primary config file
+alias_bkup=${MYPATH}data/alias_bkup-`date +%d%b%Y-%H%M%S`
+MAIN=${MYPATH}/bin/pat_admin/pat_admin
+LOGO=${MYPATH}/pmlogo.png
+
+#backup current alias
+jq '.connect_aliases' $config > ${alias_bkup}
+sed -i 's/{//;s/}//;s/,//g;s/"/\\"/g' ${alias_bkup}
+
+#give user feedback
+yad --title="Alias Export" --width=400 --height=100 \
+--image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+--center --form --text="\rAlias Export Complete\rfile=${alias_bkup}" \
+--button=gtk-ok
+
+${MAIN}

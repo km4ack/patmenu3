@@ -2,14 +2,49 @@
 
 #script helps user determine correct settings for his radio
 #07MARCH2025 km4ack
+#09MARCH2025 last edit KM4ACK
 
 LOGO=${MYPATH}/pmlogo.png
 MAIN=${MYPATH}/bin/config/config
 CONFIG=${HOME}/.config/pat/config.json
 port=$(grep http_addr ${CONFIG} | awk '{print $2}' | sed 's/.*://;s/",//')
 pm_config=${MYPATH}/data/config
+direwolf=$(whereis direwolf | awk '{print $2}')
+kissparms=$(whereis kissparms | awk '{print $2}')
+ardopcf=$(whereis ardopcf | awk '{print $2}')
+card=$(arecord -l | grep USB | awk '{print $2}' | sed 's/://')
+device=$(arecord -l | grep USB | awk -F "]" '{print $2}' | awk '{print $3}' | sed 's/://')
 rigctl=$(whereis rigctld | awk '{print $2}')
-rigctl="${rigctl} -m 4"
+
+if [ -z "${rigctl}" ]; then
+  rigctl="not installed"
+else
+  rigctl="${rigctl} -m 4"
+fi
+
+if [ -z "${kissparms}" ]; then
+  kissparms="not_installed"
+else
+  kissparms="${kissparms} -c 1 -p"
+fi
+
+if [ -z "${ardopcf}" ]; then
+  ardopcf="not_installed"
+else
+  ardopcf="${ardopcf} 8515 plughw:${card},${device} plughw:${card},${device}"
+fi
+
+if [ -z "${direwolf}" ]; then
+  direwolf="not_installed"
+else
+  direwolf="${direwolf} -p"
+fi
+
+if [ -z ${card} ] || [ -z ${device} ]; then
+  soundcard="unable_to_determine"
+else
+  soundcard="${card},${device}"
+fi
 
 #verify that flrig is running
 if [ -z `pidof flrig` ]; then
@@ -41,20 +76,26 @@ ssb_two=$(rigctl -m 4 m | tail -1)
 ssb="${ssb_one} ${ssb_two}"
 
 #show results
-suggest=$(yad --title="Suggested Settings" --width=400 --height=100 \
+suggest=$(yad --title="Suggested Settings" --width=450 --height=100 \
 --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
 --center --form --text="Suggested settings\rfor Pat Menu config" \
 --field="Rig Control Command":RO "${rigctl}" \
 --field="HF Mode for Radio":RO "${ssb}" \
 --field="2M Mode for Radio":RO "${fm}" \
 --field="Pat Port":RO "${port}" \
+--field="Direwolf Command":RO "${direwolf}" \
+--field="kissparms Command":RO "${kissparms}" \
+--field="Soundcard":RO "${soundcard}" \
+--field="ARDOPcf":RO "${ardopcf}" \
 --button="Cancel":1 \
 --button="Update Config":2)
 but=$?
 
 #update the config file
 if [ ${but} = 2 ]; then
-  echo "but 2 choosen"
+  #create backup of current config
+  cp ${MYPATH}/data/config ${MYPATH}/data/`date +%m%d%Y_%H%M`-backup.config
+  #set variables
   rigctl=$(echo ${suggest} | awk -F "|" '{print $1}')
   rigctl="RIG=\"${rigctl}\""
   ssb=$(echo ${suggest} | awk -F "|" '{print $2}')
@@ -63,11 +104,21 @@ if [ ${but} = 2 ]; then
   fm="MODE2M=\"${fm}\""
   port=$(echo ${suggest} | awk -F "|" '{print $4}')
   port="PORT=${port}"
+  direwolf=$(echo ${suggest} | awk -F "|" '{print $5}')
+  direwolf="DIREWOLF=\"${direwolf}\""
+  kissparms=$(echo ${suggest} | awk -F "|" '{print $6}')
+  kissparms="KISSPARMS=\"${kissparms}\""
+  ardopcf=$(echo ${suggest} | awk -F "|" '{print $8}')
+  ardopcf="ARDOP=\"${ardopcf}\""
 
+  #update config file
   sed -i "s|^RIG=.*|${rigctl}|" ${pm_config}
   sed -i "s|^MODEHF=.*|${ssb}|" ${pm_config}
   sed -i "s|^MODE2M=.*|${fm}|" ${pm_config}
   sed -i "s|^PORT=.*|${port}|" ${pm_config}
+  sed -i "s|^KISSPARMS=.*|${kissparms}|" ${pm_config}
+  sed -i "s|^DIREWOLF=.*|${direwolf}|" ${pm_config}
+  sed -i "s|^ARDOP=.*|${ardopcf}|" ${pm_config}
 
   #give user feedback
   yad --title="Suggested Settings" --width=400 --height=100 \
@@ -77,6 +128,8 @@ if [ ${but} = 2 ]; then
   ${MAIN}
 elif [ ${but} = 1 ]; then
   ${MAIN}
+elif [ ${but} = 252 ]; then
+  exit
 fi
 
 

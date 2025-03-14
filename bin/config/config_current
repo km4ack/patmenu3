@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#27FEB2025 last edit KM4ACK
+#09MARCH2025 last edit KM4ACK
 
 source ${MYPATH}/data/config
 CONFIGTMP=${MYPATH}/data/config.temp
@@ -39,7 +39,7 @@ SETTINGS=$(yad --form --width=600 --text-align=center --center --title="Pat Menu
 --field="MAP":CB "$MAP" \
 --field="Rig Control":CB "$RIGCONTROL" \
 --field="ARDOP Command" "$ARDOP" \
---field="ARDOP GUI Command" "$ARDOPGUI" \
+--field="kissparms Command" "$KISSPARMS" \
 --field="Direwolf Command" "$DIREWOLF" \
 --field="KISS Command" "$KISS" \
 --field="AX25 Port" "$AXP" \
@@ -64,7 +64,7 @@ elif [ ${BUT} = 2 ]; then
   MAP=$(echo ${SETTINGS} | awk -F "|" '{print $2}')
   RIGCONTROL=$(echo ${SETTINGS} | awk -F "|" '{print $3}')
   ARDOP=$(echo ${SETTINGS} | awk -F "|" '{print $4}')
-  ARDOPGUI=$(echo ${SETTINGS} | awk -F "|" '{print $5}')
+  KISSPARMS=$(echo ${SETTINGS} | awk -F "|" '{print $5}')
   DIREWOLF=$(echo ${SETTINGS} | awk -F "|" '{print $6}')
   KISS=$(echo ${SETTINGS} | awk -F "|" '{print $7}')
   AXP=$(echo ${SETTINGS} | awk -F "|" '{print $8}')
@@ -83,7 +83,7 @@ elif [ ${BUT} = 2 ]; then
   echo "MAP=$MAP" >> ${CONFIGTMP}
   echo "RIGCONTROL=$RIGCONTROL" >> ${CONFIGTMP}
   echo "ARDOP=\"$ARDOP\"" >> ${CONFIGTMP}
-  echo "ARDOPGUI=\"$ARDOPGUI\"" >> ${CONFIGTMP}
+  echo "KISSPARMS=\"$KISSPARMS\"" >> ${CONFIGTMP}
   echo "DIREWOLF=\"$DIREWOLF\"" >> ${CONFIGTMP}
   echo "KISS=\"$KISS\"" >> ${CONFIGTMP}
   echo "AXP=$AXP" >> ${CONFIGTMP}
