@@ -20,7 +20,8 @@ yad --form --width=420 --text-align=center --center --title="Pat Catalog" --text
 --field="Remove Catalog Categories":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/catelog/remove_categories"' \
 --field="Update Catalog":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/catelog/update_catelog_list"' \
 --field="Send SMS":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/sms/manage-sms"' \
---field="Convert WL2K_NEARBY to APRS":fbtn 'bash -c "kill -USR1 $YAD_PID; $HOME/patmenu2/convert_to_aprs"' \
+--field="Convert Positions to APRS":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/pos/convert_to_aprs"' \
+--field="Convert Positions to CSV":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/pos/csv"' \
 --field="Catalog Updated - ${LAST_UPDATE}":LBL \
 --button="Main Menu":1
 
