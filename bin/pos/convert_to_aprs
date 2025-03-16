@@ -7,7 +7,7 @@
 
 
 LOGO=${MYPATH}/pmlogo.png
-MAIN=${MYPATH}/./catalog
+MAIN=${MYPATH}/bin/catelog/catelog
 CONFIG=$HOME/.config/pat/config.json
 PATCALL=$(grep mycall $HOME/.config/pat/config.json | head -1 | sed 's/"mycall": "//;s/",//;s/ //g')
 LIST=$HOME/.local/share/pat/mailbox/$PATCALL/in
@@ -120,8 +120,8 @@ fi
 ###############################################
 
 #remove exiting file if it exist
-if [ -f $HOME/Desktop/gateways.pos ]; then
-	rm $HOME/Desktop/gateways.pos
+if [ -f $HOME/Desktop/position.pos ]; then
+	rm $HOME/Desktop/position.pos
 fi
 
 #give user feedback
@@ -147,14 +147,14 @@ while read -r line; do
     COMMENT=$(echo $line | awk '{$1=$2=$3=$4=$5=$6=$7=$8=""; print $0}' | sed -e 's/^[ \t]*//')
     TIME=$(date -u +%H%M%S)
 
-    #echo ";$CALL*$TIME""h""$LAT/$LONG-$COMMENT" >> ~/Desktop/gateways.pos                (Produces a house on the map)
-    echo ";$CALL*$TIME""h""$LAT\\$LONG""a""$COMMENT" >> ~/Desktop/gateways.pos           #(Produces a red diamond on the map)
+    #echo ";$CALL*$TIME""h""$LAT/$LONG-$COMMENT" >> ~/Desktop/position.pos                (Produces a house on the map)
+    echo ";$CALL*$TIME""h""$LAT\\$LONG""a""$COMMENT" >> ~/Desktop/position.pos           #(Produces a red diamond on the map)
 done < /run/user/$UID/tempgatelist
 
 #let user know processing is finished
 yad --form --width=500 --text-align=center --center --title="WL2K to ARPS Object" --text-align=center \
 --image ${LOGO} --window-icon=${LOGO} --image-on-top --separator="|" --item-separator="|" \
---text="<b>Processing done.</b>\rA gateways.pos file has been created and\r is on your desktop ready to import into YAAC." \
+--text="<b>Processing done.</b>\rA position.pos file has been created and\r is on your desktop ready to import into YAAC." \
 --button=gtk-ok
 
 #remove the temp file
