@@ -1,0 +1,83 @@
+#!/bin/bash
+
+#script create CSV file from position report email
+#16MARCH2025 KM4ACK
+
+outfile=$HOME/Desktop/position.csv
+temp_file=/run/user/$UID/temp_position.txt
+PATCALL=$(grep mycall $HOME/.config/pat/config.json | head -1 | sed 's/"mycall": "//;s/",//;s/ //g')
+MAILBOX=$HOME/.local/share/pat/mailbox/$PATCALL/in
+LOGO=${MYPATH}/pmlogo.png
+MAIN=${MYPATH}/bin/catelog/catelog
+
+###############################################
+#ask for file to use
+###############################################
+
+#search inbox for WL2K_Nearby file to work with
+for file in ${MAILBOX}/*; do
+	NEARBY=$(grep WL2K_NEARBY $file)
+	if [ -n "$NEARBY" ]; then
+		NCK_FILE=${file}
+		NCK="WL2K_Nearby"
+		break
+	fi
+done
+
+#search inbox for WL2K_Mobile file to work with
+for file in ${MAILBOX}/*; do
+	MOBILE=$(grep WL2K_MOBILE $file)
+	if [ -n "$MOBILE" ]; then
+		MCK_FILE=${file}
+		MCK="WL2K_Mobile"
+		break
+	fi
+done
+
+#Check if a list was found to work with
+if [ -z "$MCK" ] && [ -z "$NCK" ]; then
+	NCK="No List Found. Pls Download"
+fi
+
+WL2K_LIST=$(yad --form --width=420 --text-align=center --center --title="Available Lists" \
+--image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
+--text="List(s) found in inbox" \
+--field="List to Use":CB "$NCK|$MCK")
+BUT=$?
+
+if [ ${BUT} = 1 ]; then
+	$MAIN & exit
+elif [ ${BUT} = 252 ]; then
+	exit
+fi
+
+CK=$(echo $WL2K_LIST | awk -F "|" '{print $1}')
+
+if [ "$CK" = 'WL2K_Nearby' ]; then
+	LIST=${NCK_FILE}
+elif [ "$CK" = 'WL2K_Mobile' ]; then
+	LIST=${MCK_FILE}
+elif [ "$CK" = 'No List Found. Pls Download' ]; then
+	$MAIN & exit
+fi
+
+cp ${LIST} ${temp_file}
+#remove unneeded lines from file
+sed -i '1,19d;s/@//' ${temp_file}
+
+#create csv from file
+echo "CALL,Distance,Heading,Latitude,Longitude,Date,Time,Comment" > ${outfile}
+while read line; do
+  data=$(echo ${line} | awk '{print $1","$2","$3","$4","$5","$6","$7}')
+  #echo $data
+  comment=$(echo ${line} | awk '{print $1=$2=$3=$4=$5=$6=$7=""; print $0}'| sed -z "s/\n//g" | sed 's/^       //g;s/,//g')
+  echo "${data},${comment}" >> ${outfile}
+done < ${temp_file}
+
+#let user know processing is finished
+yad --form --width=500 --text-align=center --center --title="Position to CSV" --text-align=center \
+--image ${LOGO} --window-icon=${LOGO} --image-on-top --separator="|" --item-separator="|" \
+--text="<b>Processing done.</b>\rposition.csv file has been created and\r is on your desktop." \
+--button=gtk-ok
+${MAIN}
+
