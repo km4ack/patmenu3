@@ -1,0 +1,33 @@
+#!/bin/bash
+
+
+#new method for sending sms messages from winlink
+#km4ack 21APRIL2025 
+
+
+#main menu
+message=$(yad --center --width=500 --wrap --window-icon=$HOME/Pi-APRS/ISS.png \
+--title="Send Text Messages via Winlink" --text="Please complete the following:" \
+--form --separator="|" --item-separator="|" \
+--field="Phone Number" \
+--field="Message" \
+--button="Post Message" \
+--button="Cancel")
+but=$?
+
+if [ ${but} = 1 ]; then
+  ${main}
+  echo "going home"; exit
+fi
+
+if [ ${but} = 252 ]; then
+  exit
+fi
+
+phone=$(echo ${message} | awk -F "|" '{print $1}' | sed 's/-//g')
+message_out=$(echo ${message} | awk -F "|" '{print $2}')
+
+
+echo -e "${message_out}" | pat compose sms@hamdesk.com -s ${phone}
+
+
