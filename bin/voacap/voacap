@@ -20,7 +20,7 @@ user_input(){
   --button="Predict":2 \
   --button="Cancel":1)
   but=$?
-
+#echo "Button = ${but}" >> $HOME/Desktop/log.txt
   if [ ${but} = 252 ]; then
     exit
   elif [ ${but} = 1 ]; then
@@ -31,6 +31,10 @@ user_input(){
   tx_grid=$(echo ${INPUT} | awk -F "|" '{print $1}')
   rx_grid=$(echo ${INPUT} | awk -F "|" '{print $2}')
   ssn=$(echo ${INPUT} | awk -F "|" '{print $3}')
+
+#echo "txgrid=$tx_grid" >> $HOME/Desktop/log.txt
+#echo "rxgrid=$rx_grid" >> $HOME/Desktop/log.txt
+#echo "ssn=$ssn" >> $HOME/Desktop/log.txt
 
   if [ -z ${tx_grid} ] || [ -z ${rx_grid} ]; then
     yad --form --width=575 --text-align=center --center --title="Propagation Prediction" --text-align=center \
