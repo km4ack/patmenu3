@@ -196,7 +196,7 @@ QUIT
 END
 
 utc_time=$(date -u +%H:%M)
-clear && #cat ./voacap.txt
+#clear && #cat ./voacap.txt
 yad --width=700 --height=450 --text-align=center --center --title="voacap prediction" \
     --image ${LOGO} --window-icon=${LOGO} --image-on-top --separator="|" --item-separator="|" \
     --text-info --text="<b>TX Grid - $1\rRX Grid - $2</b>\rCurrent Time ${utc_time}z"\
