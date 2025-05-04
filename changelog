@@ -8,6 +8,7 @@ Changelog
   change wording for pos file creation
   change way sms is sent
   add propagation prediction
+  add config helper
 3.0.1
   update config settings
   update start-pat2m for new config settings
