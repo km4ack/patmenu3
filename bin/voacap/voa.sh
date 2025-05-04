@@ -171,7 +171,7 @@ END
 echo -e "\nCalculating Short-Path..."
 voacapl -s ~/itshfbc
 
-(tail -n +27 $OUT | head -n 5 &&  grep -e'-  REL' $OUT && grep -e'-  S DBW' $OUT) | ./rel.pl > ./voacap.txt
+(tail -n +27 $OUT | head -n 5 &&  grep -e'-  REL' $OUT && grep -e'-  S DBW' $OUT) | ${MYPATH}/bin/voacap/rel.pl > ${MYPATH}/bin/voacap/voacap.txt
 
 
 cat << END > $INP 
@@ -200,7 +200,7 @@ clear && #cat ./voacap.txt
 yad --width=700 --height=450 --text-align=center --center --title="voacap prediction" \
     --image ${LOGO} --window-icon=${LOGO} --image-on-top --separator="|" --item-separator="|" \
     --text-info --text="<b>TX Grid - $1\rRX Grid - $2</b>\rCurrent Time ${utc_time}z"\
-    --button="CLOSE":2 <./voacap.txt
+    --button="CLOSE":2 <${MYPATH}/bin/voacap/voacap.txt
 
 ${MAIN} & exit
 
