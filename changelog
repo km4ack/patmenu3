@@ -2,6 +2,7 @@ release=3.0.2
 
 Changelog
 3.0.2
+  add driving directions to catalog
   fix backup not working if dir has space in name
   add position report to csv
   change wording in catalog section
