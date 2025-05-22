@@ -22,6 +22,7 @@ yad --form --width=420 --text-align=center --center --title="Pat Catalog" --text
 --field="Send SMS":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/sms/send_sms"' \
 --field="Convert Positions to APRS":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/pos/convert_to_aprs"' \
 --field="Convert Positions to CSV":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/pos/csv"' \
+--field="Driving Directions":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/catelog/driving_directions"' \
 --field="Catalog Updated - ${LAST_UPDATE}":LBL \
 --button="Main Menu":1
 
