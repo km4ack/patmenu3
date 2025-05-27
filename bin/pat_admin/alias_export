@@ -4,7 +4,7 @@
 
 eval `pat env`
 config=$(echo $PAT_CONFIG_PATH) #primary config file
-alias_bkup=${MYPATH}data/alias_bkup-`date +%d%b%Y-%H%M%S`
+alias_bkup=${MYPATH}/data/alias_bkup-`date +%d%b%Y-%H%M%S`
 MAIN=${MYPATH}/bin/pat_admin/pat_admin
 LOGO=${MYPATH}/pmlogo.png
 
