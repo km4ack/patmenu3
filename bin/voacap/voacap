@@ -1,0 +1,53 @@
+#!/bin/bash
+
+#propagation prediction for pat menu
+#28MARCH2025 KM4ACK
+
+LOGO=${MYPATH}/pmlogo.png
+MAIN=${MYPATH}/patmenu
+
+
+user_input(){
+  #get input from user
+  INPUT=$(yad --form --width=575 --text-align=center --center --title="Propagation Prediction" --text-align=center \
+  --separator="|" --item-separator="|" \
+  --text="<b>NOTE:</b>\rTX and RX grid required.\rSunspot number can be blank but prediction result will be better if supplied.\r \
+  You can get current sunspot numbers from the Winlink catalog.\r Look for PROP_SGAS in the catalog propagation section." \
+  --image=$LOGO --window-icon=$LOGO --image-on-top \
+  --field="TX Station Grid" \
+  --field="RX Station Grid" \
+  --field="Current Sunspot Number" \
+  --button="Predict":2 \
+  --button="Cancel":1)
+  but=$?
+#echo "Button = ${but}" >> $HOME/Desktop/log.txt
+  if [ ${but} = 252 ]; then
+    exit
+  elif [ ${but} = 1 ]; then
+    ${MAIN} & exit
+  fi
+
+  #parse the data
+  tx_grid=$(echo ${INPUT} | awk -F "|" '{print $1}')
+  rx_grid=$(echo ${INPUT} | awk -F "|" '{print $2}')
+  ssn=$(echo ${INPUT} | awk -F "|" '{print $3}')
+
+#echo "txgrid=$tx_grid" >> $HOME/Desktop/log.txt
+#echo "rxgrid=$rx_grid" >> $HOME/Desktop/log.txt
+#echo "ssn=$ssn" >> $HOME/Desktop/log.txt
+
+  if [ -z ${tx_grid} ] || [ -z ${rx_grid} ]; then
+    yad --form --width=575 --text-align=center --center --title="Propagation Prediction" --text-align=center \
+    --separator="|" --item-separator="|" \
+    --text="<b>RX and TX Station Grids Required</b>" \
+    --image=$LOGO --window-icon=$LOGO --image-on-top \
+    --button=gtk-ok
+    user_input
+  else
+    #call prediction script
+    ${MYPATH}/bin/voacap/voa.sh ${tx_grid} ${rx_grid} ${ssn} & exit
+  fi
+}
+
+user_input
+

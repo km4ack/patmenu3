@@ -16,6 +16,7 @@ yad --form --width=480 --text="<b>Find Gateways</b> by KM4ACK" --text-align=cent
 --image $LOGO --window-icon=$LOGO --image-on-top \
 --text="<b>Find Gateways</b> by KM4ACK\rv${VERSION}" \
 --field="Search for Gateway":fbtn 'bash -c "kill -USR1 $YAD_PID; $MYPATH/bin/find-gateways/gridsearch"' \
+--field="Propagation Prediction":fbtn 'bash -c "kill -USR1 $YAD_PID; $MYPATH/bin/voacap/voacap"' \
 --field="View Grid Map":fbtn 'bash -c "$MYPATH/bin/find-gateways/map"' \
 --field="Download Gateway List":fbtn 'bash -c "kill -USR1 $YAD_PID; $MYPATH/bin/find-gateways/manual"' \
 --field="Auto Download Gateway List <b>$CURRENT</b>":fbtn 'bash -c "kill -USR1 $YAD_PID; $MYPATH/bin/find-gateways/auto"' \

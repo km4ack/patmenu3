@@ -1,6 +1,15 @@
-release=3.0.1
+release=3.0.2
 
 Changelog
+3.0.2
+  add driving directions to catalog
+  fix backup not working if dir has space in name
+  add position report to csv
+  change wording in catalog section
+  change wording for pos file creation
+  change way sms is sent
+  add propagation prediction
+  add config helper
 3.0.1
   update config settings
   update start-pat2m for new config settings
@@ -14,9 +23,9 @@ Changelog
   add rig control config check to all modem scripts
   rewrite of app specific for x86
   update logo
-  full rewrite of Winlink Catelog
+  full rewrite of Winlink Catalog
   include all Winlink Catelog options
-  add update catelog option
+  add update catalog option
   add contact list
 DEV
   change ardopc64 to ardopcf in start-ardop

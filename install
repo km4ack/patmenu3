@@ -4,6 +4,39 @@
 
 export MYPATH="$(cd "$(dirname "$0")" && pwd)"
 
+#dependencies
+#voacap
+sudo apt install build-essential gfortran -y
+cd ${HOME}/Downloads
+wget https://github.com/jawatson/voacapl/archive/refs/tags/v.0.7.6.zip
+unzip v.0.7.6.zip
+cd voacapl-v.0.7.6
+./configure
+make
+if [ -z $SUDO_ASKPASS ]; then
+  echo "building voacap"
+  echo "enter sudo password if asked"
+  sudo make install
+else
+  sudo -A make install
+fi
+makeitshfbc
+
+#wwl
+cd ${HOME}/Downloads
+wget http://db.net/downloads/wwl+db-1.3.tgz
+tar -xvzf wwl+db-1.3.tgz
+cd wwl+db-1.3
+make
+if [ -z $SUDO_ASKPASS ]; then
+  echo "installing wwl"
+  echo "enter sudo password if asked"
+  sudo make install
+else
+  sudo -A make install
+fi
+
+
 if [ -d $HOME/patmenu2 ]; then
   #remove old desktop file
   if [ -f /usr/local/share/applications/patmenu.desktop ]; then
@@ -37,6 +70,7 @@ chmod +x ${MYPATH}/bin/modems/*
 chmod +x ${MYPATH}/bin/pat_admin/*
 chmod +x ${MYPATH}/bin/pos/*
 chmod +x ${MYPATH}/bin/sms/add-carrier ${MYPATH}/bin/sms/current-carriers \
+chmod +x ${MYPATH}/bin/voacap/rel.ph ${MYPATH}/bin/voacap/voa.sh ${MYPATH}/bin/voacap/voacap
 ${MYPATH}/bin/sms/manage-sms ${MYPATH}/bin/sms/remove-carrier ${MYPATH}/bin/sms/winlink2sms
 
 
