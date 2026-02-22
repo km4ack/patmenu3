@@ -68,7 +68,7 @@ sub process {
     for ($fh) {
 	    print $_ "VOACAP Prediction via $path. $mo[0] $mo[1]: SSN $mo[4] Power = $pwr[$#pwr], $mode\n";
             print $_ "TX ($co[0]$co[1], $co[2]$co[3]) to RX ($co[5]$co[6], $co[7]$co[8]): $km km, $mi mi, $brn deg\n\n";
-	    print $_ "  | 01|02|03|04|05|06|07|08|09|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|\n";
+	    print $_ "  | 00|01|02|03|04|05|06|07|08|09|10|11|12|13|14|15|16|17|18|19|20|21|22|23|\n";
 	}
     
     foreach my $freq (reverse 1..9) { 
@@ -78,7 +78,7 @@ sub process {
 	}    
 
     for ($fh) {
-	    print $_ "  | 01|02|03|04|05|06|07|08|09|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|\n\n";
+	    print $_ "  | 00|01|02|03|04|05|06|07|08|09|10|11|12|13|14|15|16|17|18|19|20|21|22|23|\n\n";
 	    print $_ "A = 90 - 100%   d = 25 - 49%  * = REL 0%, but Signal Power over Noise\n";
 	    print $_ "B = 75 -  89%   e = 10 - 24%\n";
 	    print $_ "C = 50 -  74%   f =  1 -  9%\n\n";
