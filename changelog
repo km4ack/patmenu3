@@ -1,6 +1,9 @@
-release=3.0.2
+release=3.0.3
 
 Changelog
+3.0.3
+  fix UTM time in propagation prediction
+  fix install of wwl if already installed
 3.0.2
   add driving directions to catalog
   fix backup not working if dir has space in name
