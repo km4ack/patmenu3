@@ -1,6 +1,8 @@
-release=3.0.3
+release=3.0.4
 
 Changelog
+3.0.4
+  fix installer
 3.0.3
   fix UTM time in propagation prediction
   fix install of wwl if already installed
