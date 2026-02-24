@@ -72,8 +72,8 @@ chmod +x ${MYPATH}/bin/modems/*
 chmod +x ${MYPATH}/bin/pat_admin/*
 chmod +x ${MYPATH}/bin/pos/*
 chmod +x ${MYPATH}/bin/sms/add-carrier ${MYPATH}/bin/sms/current-carriers \
-chmod +x ${MYPATH}/bin/voacap/rel.ph ${MYPATH}/bin/voacap/voa.sh ${MYPATH}/bin/voacap/voacap
-${MYPATH}/bin/sms/manage-sms ${MYPATH}/bin/sms/remove-carrier ${MYPATH}/bin/sms/winlink2sms
+chmod +x ${MYPATH}/bin/voacap/rel.pl ${MYPATH}/bin/voacap/voa.sh ${MYPATH}/bin/voacap/voacap
+chmod +x ${MYPATH}/bin/sms/manage-sms ${MYPATH}/bin/sms/remove-carrier ${MYPATH}/bin/sms/winlink2sms
 
 
 #create shortcut
