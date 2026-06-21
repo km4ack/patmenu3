@@ -28,6 +28,6 @@ phone=$(echo ${message} | awk -F "|" '{print $1}' | sed 's/-//g')
 message_out=$(echo ${message} | awk -F "|" '{print $2}')
 
 
-echo -e "${message_out}" | pat compose sms@hamdesk.com -s ${phone}
+echo -e "${message_out}" | pat compose winlinksms@gmail.com -s ${phone}
 
 
