@@ -1,6 +1,11 @@
-release=3.0.4
+release=3.0.5
 
 Changelog
+3.0.5
+  fix sms address for na7q Issue #19
+  add ardopcf to stop modems Issue #20
+  fix send sms not giving notice or return to menu Issue #13
+  partial fix for Issue #18. Find gateways left for now.
 3.0.4
   fix installer
 3.0.3
