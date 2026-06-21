@@ -4,6 +4,8 @@
 #new method for sending sms messages from winlink
 #km4ack 21APRIL2025 
 
+LOGO=${MYPATH}/pmlogo.png
+MAIN=${MYPATH}/bin/catelog/catelog
 
 #main menu
 message=$(yad --center --width=500 --wrap --window-icon=$HOME/Pi-APRS/ISS.png \
@@ -28,6 +30,8 @@ phone=$(echo ${message} | awk -F "|" '{print $1}' | sed 's/-//g')
 message_out=$(echo ${message} | awk -F "|" '{print $2}')
 
 
-echo -e "${message_out}" | pat compose sms@hamdesk.com -s ${phone}
+echo -e "${message_out}" | pat compose winlinksms@gmail.com -s ${phone}
+yad --center --timeout=3 --timeout-indicator=top --no-buttons --text="Message posted to Pat outbox."
+${MAIN} & exit
 
 

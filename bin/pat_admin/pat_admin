@@ -9,10 +9,6 @@ MAIN=${MYPATH}/patmenu
 yad --form --width=420 --text-align=center --center --title="Pat Admin" --text-align=center \
 --image $LOGO --window-icon=$LOGO --image-on-top --separator="|" --item-separator="|" \
 --text="<b>Pat Admin</b> by KM4ACK" \
---field="Pat Login-Logout":fbtn 'bash -c "kill -USR1 $YAD_PID; source ${MYPATH}/bin/pat_admin/login_out"' \
---field="GPS Grid Update":fbtn 'bash -c "kill -USR1 $YAD_PID; source ${MYPATH}/bin/pat_admin/gps_grid"' \
---field="Manual Grid Update":fbtn 'bash -c "kill -USR1 $YAD_PID; ${MYPATH}/bin/pat_admin/manual_grid"' \
---field="Set Listen Mode":fbtn 'bash -c "kill -USR1 $YAD_PID; source ${MYPATH}/bin/pat_admin/set_listen_mode"' \
 --field="Add P2P Telnet Alias":fbtn 'bash -c "kill -USR1 $YAD_PID; source ${MYPATH}/bin/pat_admin/p2p_alias"' \
 --field="Export Aliases":fbtn 'bash -c "kill -USR1 $YAD_PID; source ${MYPATH}/bin/pat_admin/alias_export"' \
 --field="Import Aliases":fbtn 'bash -c "kill -USR1 $YAD_PID; source ${MYPATH}/bin/pat_admin/alias_import"' \
