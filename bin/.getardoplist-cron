@@ -15,10 +15,14 @@
 
 TODAY=$(date)
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MYPATH="$(dirname "$SCRIPT_DIR")"
+
+
 #path where files are located
 #must match path in findardop script
-MYVARA=$MYPATH/data/vara-list/
-MYARDOP=$MYPATH/data/ardop-list/
+MYVARA=${MYPATH}/data/vara-list/
+MYARDOP=${MYPATH}/data/ardop-list/
 
 
 #my log file
