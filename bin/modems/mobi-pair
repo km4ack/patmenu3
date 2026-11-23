@@ -5,6 +5,7 @@
 
 EXISTING=`bluetoothctl devices Paired | grep Mobilinkd`
 TMP=/run/user/$UID/mobi.txt
+MODEM_NAME="Mobilinkd Pairing"
 
 #see if we already have a TNC paired
 if [ -n "${EXISTING}" ]; then
