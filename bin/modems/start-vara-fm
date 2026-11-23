@@ -9,6 +9,8 @@ source ${MYPATH}/data/config
 RIGCTL=${RIG}
 RIG=$(cat ${MYPATH}/data/config | grep RIG= | sed 's/RIG=//;s/"//g;s/rigctld/rigctl/')
 rig_settings=/run/user/$UID/rig_settings.txt
+MODEM_NAME="Start VARA FM"
+START_MODEM_COMMAND="/usr/bin/wine ${HOME}/.wine/drive_c/VARA\ FM/VARAFM.exe"
 
 if [ ! -f ${HOME}/.wine/drive_c/VARA\ FM/VARAFM.exe ]; then
   yad --title="FAILED" --width=400 --height=100 \
@@ -122,7 +124,7 @@ if [ ${RIGCONTROL} == 'yes' ]; then
   SETRIG
 fi
 
-/usr/bin/wine ${HOME}/.wine/drive_c/VARA\ FM/VARAFM.exe > /dev/null 2>&1 &
+eval ${START_MODEM_COMMAND}> /dev/null 2>&1 &
 sleep 7 #give vara time to start
 
 #verify vara has started
