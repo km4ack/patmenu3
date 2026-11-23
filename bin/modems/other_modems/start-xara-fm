@@ -1,0 +1,145 @@
+#!/bin/bash
+
+#start ardop modem
+
+#20191118 km4ack
+#07MARCH2025 last edit km4ack
+MYPATH=$HOME/patmenu3
+source ${MYPATH}/data/config
+RIGCTL=${RIG}
+RIG=$(cat ${MYPATH}/data/config | grep RIG= | sed 's/RIG=//;s/"//g;s/rigctld/rigctl/')
+LOGO=${MYPATH}/pmlogo.png
+rig_settings=/run/user/$UID/rig_settings.txt
+MODEM_NAME="Start XARA FM"
+START_MODEM_COMMAND="gnome-terminal --geometry=135x15 -- ${HOME}/.cargo/bin/xara --config ${XARAFM}"
+
+RIGCONTROL_CHECK(){
+#function to verify config matches system (whereis rigctld)
+system_location=$(whereis rigctld | awk '{print $2}')
+system_location2=$(whereis rigctld | awk '{print $3}')
+config_location=$(echo ${RIGCTL} | awk '{print $1}')
+
+if [[ ${system_location} != ${config_location} ]] && [[ ${system_location2} != ${config_location} ]]; then
+  yad --title="MISMATCH" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+  --center --form --text="<b>Config MISMATCH</b>\rrigctld is located at ${system_location}\rPat Menu config is set to ${config_location}\rQSY error may occur" \
+  --button=gtk-ok
+fi
+}
+
+#Check if FLRIG is running if user has it set in config file
+if [ "${RIGCONTROL}" = 'yes' ]; then
+  echo "rig control is on"
+  RIGCONTROL_CHECK
+  FLRIG=$(echo ${RIG} | grep "\-m 4")
+	if [ -z "${FLRIG}" ]; then
+	  echo
+	else
+	  FLRIG=$(pidof flrig)
+		if [ -z "${FLRIG}" ]; then
+		  yad --title="FAILED" --width=400 --height=100 \
+    	--image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+   		--center --form --text="Please start FLRIG and try again" \
+    	--button=gtk-ok
+		  exit
+		fi
+	fi
+fi
+
+#get current radio settings
+current_frequency=$(rigctl -m 4 f)
+mode_one=$(rigctl -m 4 m | head -1)
+mode_two=$(rigctl -m 4 m | tail -1)
+current_mode="${mode_one} ${mode_two}"
+echo "current_frequency=${current_frequency}" > ${rig_settings}
+echo "current_mode=\"${current_mode}\"" >> ${rig_settings}
+
+#Check if modem is already running
+MODEMCHECK=$(pidof xara)
+if [ -z "${MODEMCHECK}" ]; then
+  echo
+else
+  yad --title="FAILED" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+  --center --form --text="XARA Modem is already running" \
+  --button=gtk-ok
+  exit
+fi
+
+
+if [ ${AMRRON} = "no" ] > /dev/null 2>&1; then
+  #check if direwolf is running
+  PIDDW=$(pidof direwolf)
+  if [ -z "${PIDDW}" ]; then
+    echo
+  else
+    yad --title="FAILED" --width=400 --height=100 \
+    --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+    --center --form --text="It looks like the 2M/440 modem is running.\rStop all modems and try again" \
+    --button=gtk-ok
+    exit
+  fi
+
+fi
+
+yad --width=350 --height=75 --title="Start Modem" --timeout=2 --timeout-indicator=top --no-buttons --center \
+--text="Modem Starting....standby" &
+
+#Set Mode
+RIGFM=${RIG}" M ${MODE2M}"
+
+SETRIG () {
+  #set radio frequency & mode
+  ${RIGFM}
+  sleep 1
+  #check rig is in correct mode
+  MODE=$(${RIG} m | grep ${MODE2M})
+  sleep 1
+  MODECHECK() {
+    #check rig is in correct mode
+    MODE=$(${RIG} m | grep ${MODE2M})
+  }
+  sleep 1
+  if [ -z ${MODE} ]; then
+    ${RIGFM}
+    MODECHECK
+  fi
+}
+
+#see if rig control is used
+if [ ${RIGCONTROL} == 'yes' ]; then
+  PIDCTL=$(pidof rigctld)
+	  if [ -z "$PIDCTL" ]; then	
+	    CONTROL=$(cat ${MYPATH}/data/config | grep '^RIG="' | sed 's/RIG="//' | sed 's/"//')
+	    $CONTROL &
+	    sudo -A systemctl restart pat@$USER
+	  fi
+  SETRIG
+fi		
+
+#start modem
+eval ${START_MODEM_COMMAND} </dev/null &>/dev/null &
+sleep 2
+
+#verify that piardopc is running
+PIDPIC=$(pidof xara)
+if [ -z "${PIDPIC}" ]; then
+  yad --title="FAILED" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center \
+  --center --form --text="The XARA Modem FAILED to Start" \
+  --button=gtk-ok
+else
+  yad --title="ARDOP MODEM" --width=400 --height=100 \
+  --image ${LOGO} --window-icon=${LOGO} --image-on-top --text-align=center --on-top \
+  --center --form --text="\r\r\r\rThe XARA Modem has Started" \
+  --button=gtk-ok &
+fi
+
+#restart pat so terminal window correctly reflects rig control
+sudo -A systemctl restart pat@$USER
+
+#open pat inbox in browser
+export DISPLAY=:0 && xdg-open http://127.0.0.1:${PORT} > /dev/null 2>&1 &
+#open xara in browser
+export DISPLAY=:0 && xdg-open http://127.0.0.1:5001 > /dev/null 2>&1 &
+
