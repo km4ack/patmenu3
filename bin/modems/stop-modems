@@ -4,19 +4,30 @@
 #20250129 last edit by km4ack
 
 LOGO=${MYPATH}/pmlogo.png
+MODEM_NAME="Stop Modems"
 eval `cat /run/user/$UID/rig_settings.txt`
 #stop all modems that might be running
-sudo -A killall direwolf ardopc64 ardopcf kissattach piARDOP_GUI rigctld > /dev/null 2>&1
+sudo -A killall direwolf ardopc64 kissattach piARDOP_GUI data2g-gui data2g-0.5.2-linux-x86_64.AppImage> /dev/null 2>&1
 sudo -A rfcomm release /dev/rfcomm0 > /dev/null 2>&1
 VARA=$(ps aux | grep wine | grep VARA | head -1 | awk '{print $2}')
 kill -9 $VARA > /dev/null 2>&1
 VARA=$(ps aux | grep wine | grep VARA | head -1 | awk '{print $2}')
 kill -9 $VARA > /dev/null 2>&1
+XARA=$(ps aux | grep xara | grep bin/xara | head -1 | awk '{print $2}')
+kill -9 $XARA > /dev/null 2>&1
+MERCURY=$(pidof mercury)
+kill -9 ${MERCURY}
+RIG=$(pidof rigctld)
+
 
 echo "current freq is ${current_frequency}"
 echo "current mode is ${current_mode}"
 rigctl -m 4 F ${current_frequency}
 rigctl -m 4 M ${current_mode}
+sleep 1
+
+kill -9 ${RIG}
+
 
 yad --title="Modem Stopped" --width=400 --height=100 \
 --image $LOGO --window-icon=$LOGO --image-on-top --text-align=center \
