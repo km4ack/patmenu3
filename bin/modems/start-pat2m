@@ -12,6 +12,7 @@ source ${MYPATH}/data/config
 RIGCTL=${RIG}
 RIG=$(cat ${MYPATH}/data/config | grep RIG= | sed 's/RIG=//;s/"//g;s/rigctld/rigctl/')
 rig_settings=/run/user/$UID/rig_settings.txt
+MODEM_NAME="Start Direwolf Modem"
 
 #Check if FLRIG is running if user has it set in config file
 if [ "${RIGCONTROL}" = 'yes' ]; then
