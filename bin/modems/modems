@@ -3,6 +3,8 @@
 #Pat Modems
 #20220309 KM4ACK
 #03MARCH2025 last edit km4ack
+#21NOV2026 modem list now built dynamically from this script's directory
+#21NOV2026 button labels read from MODEM_NAME= in each modem script
 
 LOGO=${MYPATH}/pmlogo.png
 MAIN=${MYPATH}/./patmenu
@@ -10,18 +12,39 @@ VERSION=$(cat ${MYPATH}/changelog | grep release | head -1 | sed 's/release=//')
 
 source ${MYPATH}/data/config
 
+# Directory this script lives in, and its own file name (so we can skip it)
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+SELF=$(basename "$(readlink -f "$0")")
 
+# Helper scripts called by other scripts; never shown as buttons.
+# Space-separated file names.
+EXCLUDE="mobi-pair"
+
+# Build one button per executable file in SCRIPT_DIR
+FIELDS=()
+for FILE in "$SCRIPT_DIR"/*; do
+  NAME=$(basename "$FILE")
+  [ "$NAME" = "$SELF" ] && continue              # skip this script
+  [[ " $EXCLUDE " == *" $NAME "* ]] && continue  # skip helper scripts
+  { [ -f "$FILE" ] && [ -x "$FILE" ]; } || continue  # executable files only
+  # Label comes from a MODEM_NAME= line in the file (read as text, not run).
+  # Surrounding quotes are stripped: MODEM_NAME="Start XARA FM Modem"
+  LABEL=$(grep -m1 -s '^[[:space:]]*MODEM_NAME=' "$FILE" \
+    | sed 's/^[[:space:]]*MODEM_NAME=//; s/^["'\'']//; s/["'\''][[:space:]]*$//')
+  # Fallback if no MODEM_NAME: start-xara-fm -> Start Xara Fm
+  [ -z "$LABEL" ] && LABEL=$(echo "$NAME" | sed 's/[-_]/ /g; s/\b\(.\)/\u\1/g')
+  FIELDS+=(--field="$LABEL":fbtn "\"$FILE\"")
+done
+
+# Fallback if nothing was found
+if [ ${#FIELDS[@]} -eq 0 ]; then
+  FIELDS=(--field="No modem scripts found in $SCRIPT_DIR":LBL "")
+fi
 
 yad --form --width=420 --text-align=center --center --title="Pat Menu" --text-align=center \
 --image $LOGO --window-icon=${LOGO} --image-on-top --separator="|" --item-separator="|" \
 --text="<b>Pat Menu</b> by KM4ACK\rv${VERSION}" \
---field="Start ARDOP Modem":fbtn 'bash -c "${MYPATH}/bin/modems/start-pat-ardop"' \
---field="Start Packet Modem":fbtn 'bash -c "${MYPATH}/bin/modems/start-pat2m"' \
---field="Start Mobilinkd Modem Bluetooth":fbtn 'bash -c "${MYPATH}/bin/modems/mobilink"' \
---field="Start Mobilinkd Modem Wired":fbtn 'bash -c "${MYPATH}/bin/modems/mobi-wired"' \
---field="Start VARA Modem":fbtn 'bash -c "${MYPATH}/bin/modems/start-vara-hf"' \
---field="Start VARA FM Modem":fbtn 'bash -c "${MYPATH}/bin/modems/start-vara-fm"' \
---field="Stop Modems":fbtn 'bash -c "${MYPATH}/bin/modems/stop-modems"' \
+"${FIELDS[@]}" \
 --button="Main Menu":1
 BUT=$?
 
