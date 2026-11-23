@@ -1,0 +1,1 @@
+Modems in this directory may or may not be installed on your system. If they are installed, move the associated file from this directory to ~/patmenu3/bin/modems/ and they will appear in your modem list in PatMenu3. You may need to change the START_MODEM_COMMAND variable found near the top of the script.
