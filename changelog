@@ -2,7 +2,11 @@ release=3.0.6
 
 Changelog
 3.0.6
-  fix path for cron download job 
+  fix path for cron download job
+  change modem menu to be dynamic
+  add new modem template for xara
+  add new modem template for mercury
+  add new modem template for data2g 
 3.0.5
   fix sms address for na7q Issue #19
   add ardopcf to stop modems Issue #20
