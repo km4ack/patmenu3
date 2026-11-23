@@ -11,6 +11,7 @@ DIRE=$(pidof direwolf)
 ARDOP=$(pidof piardopc)
 TMPFILE=/run/user/$UID/scan.txt
 EXISTING=`bluetoothctl devices Paired | grep Mobilinkd`
+MODEM_NAME="Start Mobilinkd Modem Bluetooth"
 
 #see if we already have a TNC paired
 if [ -z "${EXISTING}" ]; then
