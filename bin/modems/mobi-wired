@@ -13,6 +13,7 @@ KISS=$(pidof kissattach)
 DIRE=$(pidof direwolf)
 ARDOP=$(pidof piardopc)
 MOBIUSB=$(ls -l /dev/serial/by-id | grep Mobilinkd | awk '{print $NF}' | sed 's/.*tty/tty/')
+MODEM_NAME="Start Mobilinkd Modem Wired"
 
 #verify mobilinkd is plugged in and detected
 if [ -z "${MOBIUSB}" ]; then
